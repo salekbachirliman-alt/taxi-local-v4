@@ -13,3 +13,5 @@
 
 /* Account profile and driver reservation history */
 #client-account-profile{margin:12px 0}.role-choice{border-radius:18px}.ride-card button{margin:8px 8px 0 0}.screen#driver-reservations h2{margin-bottom:8px}
+
+#customer-reservations-map,#driver-home-map{height:260px;min-height:260px;border-radius:18px;overflow:hidden;background:#edf0f4;margin:12px 0 18px}.screen h3{margin-top:22px}.driver-cards .ride-card{margin-bottom:12px}
