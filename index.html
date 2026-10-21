@@ -36,7 +36,7 @@ window.addEventListener("error",function(e){
  if(target && e.message){target.textContent="Error JavaScript: "+e.message;target.className="message error";}
 });
 </script>
-<script src="./app-fix-20261021.js?fresh=17"></script>
+<script src="./app-fix-20261021.js?fresh=18"></script>
 <script>
 /* Fallback independiente para el formulario de conductor: no depende de que app.js haya terminado de inicializarse. */
 (function(){
@@ -251,5 +251,28 @@ window.addEventListener("error",function(e){
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initLocationButton);
   else initLocationButton();
+})();
+</script><script>
+/* Recuperación final de sesión administrativa: independiente del módulo principal. */
+(function(){
+ async function restoreAdminPanel(){
+  try{
+   if(!window.supabase||!window.TAXI_CONFIG)return;
+   var client=window.supabase.createClient(window.TAXI_CONFIG.supabaseUrl,window.TAXI_CONFIG.supabaseKey);
+   var result=await client.auth.getSession(),user=result&&result.data&&result.data.session&&result.data.session.user;
+   if(!user||String(user.email||"").toLowerCase()!=="salekbachirliman@gmail.com")return;
+   var driver=document.getElementById("driver"),auth=document.getElementById("driver-auth"),admin=document.getElementById("admin-dashboard"),driverDash=document.getElementById("driver-dashboard");
+   document.querySelectorAll(".screen").forEach(function(x){x.classList.toggle("active",x.id==="driver")});
+   if(auth)auth.classList.add("hidden");if(driverDash)driverDash.classList.add("hidden");if(admin)admin.classList.remove("hidden");
+   ["home","booking","account-choice","customer-account","customer-reservations","client-home","driver-home","account"].forEach(function(id){var x=document.getElementById(id);if(x)x.classList.add("hidden")});
+   document.querySelectorAll(".bottom-nav").forEach(function(x){x.classList.add("hidden")});
+   var eyebrow=document.querySelector("#driver .eyebrow"),heading=document.querySelector("#driver h2"),back=driver&&driver.querySelector(".back");
+   if(eyebrow)eyebrow.textContent="ZONA DE ADMINISTRACIÓN";if(heading)heading.textContent="Gestión de cuentas";
+   if(back){back.textContent="Cerrar sesión";back.removeAttribute("data-screen");back.onclick=async function(e){e.preventDefault();await client.auth.signOut();location.href=location.pathname+"?signedout=1";};}
+   var refresh=document.getElementById("admin-refresh");if(refresh)setTimeout(function(){refresh.click()},250);
+  }catch(e){console.error("No se pudo restaurar el panel de administración",e)}
+ }
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",restoreAdminPanel);else restoreAdminPanel();
+ window.addEventListener("pageshow",restoreAdminPanel);
 })();
 </script></body></html>
