@@ -17,4 +17,41 @@
 <div id="driver-dashboard" class="hidden"><div class="driver-head"><div><h3>Reservas</h3><p id="driver-status" class="muted small"></p></div><button id="refresh-rides" class="secondary">Actualizar ↻</button></div><div id="rides-list"></div><button id="logout" class="secondary full">Cerrar sesión</button></div><div id="driver-message" class="message" role="status"></div></section>
 <section id="account" class="screen"><p class="eyebrow">TAXI LOCAL</p><h2>Tu zona, tu taxi.</h2><div class="panel"><p>Aplicación piloto para conectar pasajeros y conductores de Elda y Petrer.</p><p class="small muted">Versión 4 · Sin pagos integrados</p><button class="secondary full" id="account-driver">Acceso de conductor</button></div></section>
 </main><nav class="bottom-nav" aria-label="Navegación principal"><button class="nav-item active" data-screen="home"><span>⌂</span>Inicio</button><button class="nav-item" data-screen="booking"><span>＋</span>Nueva reserva</button><button class="nav-item" data-screen="account"><span>◉</span>Usuario</button></nav>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script><script src="./app.js"></script></body></html>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script><script src="./app.js"></script>
+<script>
+/* Respaldo independiente para compartir ubicación, aunque falle otro módulo de la app. */
+(function(){
+  function initLocationButton(){
+    const button=document.getElementById("use-location");
+    const address=document.getElementById("pickup-address");
+    const status=document.getElementById("location-message");
+    if(!button||!address||!status)return;
+    button.onclick=function(event){
+      event.preventDefault();
+      status.textContent="Comprobando permiso de ubicación…";
+      if(!window.isSecureContext){status.textContent="La ubicación requiere HTTPS. Abre la aplicación desde el enlace oficial en Safari.";return;}
+      if(!navigator.geolocation){status.textContent="Este navegador no permite acceder a la ubicación. Puedes escribir la dirección manualmente.";return;}
+      button.disabled=true;
+      status.textContent="El iPhone está buscando tu ubicación. Si aparece una solicitud de permiso, pulsa Permitir.";
+      navigator.geolocation.getCurrentPosition(function(position){
+        const lat=position.coords.latitude.toFixed(6);
+        const lon=position.coords.longitude.toFixed(6);
+        address.value="Mi ubicación actual — mapa: https://maps.google.com/?q="+lat+","+lon;
+        address.dispatchEvent(new Event("input",{bubbles:true}));
+        status.textContent="Ubicación añadida. Se enviará el enlace del mapa con la solicitud.";
+        button.disabled=false;
+      },function(error){
+        const messages={
+          1:"Permiso denegado. En Ajustes > Privacidad y seguridad > Localización, activa Localización y permite el acceso a Safari.",
+          2:"No se pudo determinar la ubicación. Comprueba que Localización esté activada e inténtalo otra vez.",
+          3:"La ubicación tardó demasiado. Pulsa el botón para volver a intentarlo."
+        };
+        status.textContent=messages[error.code]||"No se pudo obtener la ubicación. Escribe la dirección manualmente.";
+        button.disabled=false;
+      },{enableHighAccuracy:true,timeout:25000,maximumAge:0});
+    };
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initLocationButton);
+  else initLocationButton();
+})();
+</script></body></html>
