@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#ffd400"><meta name="description" content="Pide un taxi en Elda y Petrer."><link rel="manifest" href="./manifest.webmanifest"><link rel="stylesheet" href="./styles.css?v=20261021k"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"><title>Taxi Local</title></head>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#ffd400"><meta name="description" content="Pide un taxi en Elda y Petrer."><link rel="manifest" href="./manifest.webmanifest"><link rel="stylesheet" href="./styles.css?v=20261021l"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"><title>Taxi Local</title></head>
 <body>
 <header class="top"><div class="brand-mark">TL</div><div><h1>Taxi Local</h1><p>Elda · Petrer</p></div><span class="live-dot"></span></header>
 <main>
-<section id="home" class="screen active"><div class="welcome"><p class="eyebrow">TU TAXI, MÁS FÁCIL</p><h2>¿A dónde<br>vamos hoy?</h2><p>Solicita un taxi en unos pocos pasos.</p></div><button class="primary big" id="go-book">Pedir taxi <span>→</span></button><button class="driver-cta big" id="go-driver">Soy conductor <span>↗</span></button><p class="small muted centered">Servicio piloto en Elda, Petrer, Monóvar y Alicante</p></section>
+<section id="home" class="screen active"><div class="welcome"><p class="eyebrow">TU TAXI, MÁS FÁCIL</p><h2>¿A dónde<br>vamos hoy?</h2><p>Solicita un taxi en unos pocos pasos.</p></div><button class="primary big" id="go-book">Pedir taxi <span>→</span></button><button class="driver-cta big" id="go-driver">Soy conductor <span>↗</span></button><button class="secondary big" id="install-app" type="button">⬇ Instalar Taxi Local</button><p id="install-help" class="small muted centered" role="status">Añade Taxi Local a la pantalla de inicio de tu móvil.</p><p class="small muted centered">Servicio piloto en Elda, Petrer, Monóvar y Alicante</p></section>
 <section id="booking" class="screen"><button class="back" data-screen="home">← Volver</button><p class="eyebrow">NUEVA SOLICITUD</p><h2>Pide tu taxi</h2><form id="ride-form" class="panel">
 <label>Teléfono<input name="customer_phone" type="tel" autocomplete="tel" required minlength="6" maxlength="30" placeholder="Tu teléfono"></label>
 <label>¿Dónde te recogemos?<select name="pickup_town" required><option value="Elda">Elda</option><option value="Petrer">Petrer</option><option value="Monóvar">Monóvar</option><option value="Alicante">Alicante</option></select></label>
@@ -17,8 +17,30 @@
 <div id="admin-dashboard" class="hidden"><h3>Administración</h3><p id="admin-status" class="form-note">Gestión de conductores y reservas.</p><div class="driver-head"><h3>Cuentas por confirmar</h3><button id="admin-refresh" class="secondary">Actualizar ↻</button></div><div id="admin-pending-users"></div><div class="driver-head"><h3>Perfiles de conductores</h3></div><div id="admin-drivers"></div><div class="driver-head"><h3>Todas las reservas</h3></div><div id="admin-rides"></div><button id="admin-logout" class="secondary full">Cerrar sesión de administrador</button></div><div id="driver-dashboard" class="hidden"><div class="driver-head"><div><h3>Reservas</h3><p id="driver-status" class="muted small"></p></div><button id="refresh-rides" class="secondary">Actualizar ↻</button></div><button id="availability-toggle" class="primary full">📍 Activar disponibilidad y compartir ubicación</button><p id="availability-message" class="form-note">Para aparecer en el mapa de clientes, el conductor debe estar aprobado y activar su disponibilidad.</p><div id="rides-list"></div><button id="logout" class="secondary full">Cerrar sesión</button></div><div id="driver-message" class="message" role="status"></div></section>
 <section id="account" class="screen"><p class="eyebrow">TAXI LOCAL</p><h2>Tu zona, tu taxi.</h2><div class="panel"><p>Aplicación piloto para conectar pasajeros y conductores de Elda y Petrer.</p><p class="small muted">Versión 4 · Sin pagos integrados</p><button class="secondary full" id="account-driver">Acceso de conductor</button><button class="secondary full" id="account-admin">Panel de administrador</button></div></section>
 </main><nav class="bottom-nav" aria-label="Navegación principal"><button class="nav-item active" data-screen="home"><span>⌂</span>Inicio</button><button class="nav-item" data-screen="booking"><span>＋</span>Nueva reserva</button><button class="nav-item" data-screen="account"><span>◉</span>Usuario</button></nav>
-<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js?v=20261021f"></script><script src="./app.js?v=20261021k"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js?v=20261021f"></script><script src="./app.js?v=20261021l"></script>
 <script>
+/* Instalación PWA: Android compatible y guía para iPhone/iPad. */
+(function(){
+ let installPrompt=null;
+ window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();installPrompt=e;});
+ const button=document.getElementById("install-app"),help=document.getElementById("install-help");
+ if(!button||!help)return;
+ button.addEventListener("click",async function(){
+  if(installPrompt){
+   installPrompt.prompt();
+   const choice=await installPrompt.userChoice;
+   help.textContent=choice&&choice.outcome==="accepted"?"Taxi Local se está instalando.":"Puedes instalarla cuando quieras desde este botón.";
+   installPrompt=null;return;
+  }
+  const ua=navigator.userAgent||"";
+  const isIOS=/iPad|iPhone|iPod/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1);
+  if(isIOS){
+   help.textContent="En iPhone: abre esta página en Safari, pulsa Compartir (cuadrado con flecha hacia arriba) y elige “Añadir a pantalla de inicio”. Después pulsa “Añadir”.";
+   return;
+  }
+  help.textContent="Si tu navegador ofrece instalación, abre su menú (⋮ o Compartir) y elige “Instalar aplicación” o “Añadir a pantalla de inicio”.";
+ });
+})();
 /* Respaldo independiente para compartir ubicación, aunque falle otro módulo de la app. */
 (function(){
   function initLocationButton(){
