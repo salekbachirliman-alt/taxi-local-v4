@@ -66,9 +66,32 @@ function syncRoleNavigation(){
  $("#account-title").textContent=loggedDriver?"Cuenta de conductor":customerUser?"Mi cuenta":"Usuario";
  const reserveTab=$('.nav-item[data-screen="customer-reservations"]');
  if(reserveTab)reserveTab.innerHTML=loggedDriver?"<span>▤</span>Reservas":"<span>▤</span>Reservas";
- if(loggedDriver)loadDriverHome();
- if(customerUser)loadCustomerRides();
+ if(loggedDriver){loadDriverHome();loadDriverAccountRides()}
+ if(customerUser){loadCustomerRides();loadRecentCustomerDrivers()}
 }
+
+async function loadDriverAccountRides(){
+ if(!currentUser)return;
+ const [active,done]=await Promise.all([
+  db.from("rides").select("id,pickup_town,pickup_address,destination,passengers,status,driver_id").eq("driver_id",currentUser.id).in("status",["pending","accepted"]).order("created_at",{ascending:false}).limit(30),
+  db.from("rides").select("id,pickup_town,pickup_address,destination,passengers,status,driver_id").eq("driver_id",currentUser.id).eq("status","completed").order("created_at",{ascending:false}).limit(30)
+ ]);
+ const render=(el,rows,error)=>{el.innerHTML="";if(error){el.innerHTML='<div class="empty-state">No se pudieron cargar estas reservas.</div>';return}if(!rows?.length){el.innerHTML='<div class="empty-state">No hay reservas en esta lista.</div>';return}rows.forEach(r=>{const card=document.createElement("article");card.className="ride-card";const h=document.createElement("h4");h.textContent=r.pickup_town+" · "+r.pickup_address;const p=document.createElement("p");p.textContent="Destino: "+r.destination;const s=document.createElement("span");s.className="status";s.textContent=r.status==="completed"?"Realizada":"Activa";card.append(h,p,s);el.append(card)})};
+ render($("#driver-active-rides"),active.data,active.error);render($("#driver-completed-rides"),done.data,done.error);
+}
+async function loadRecentCustomerDrivers(){
+ const el=$("#client-recent-drivers");if(!el)return;el.innerHTML="";
+ if(!customerUser){el.innerHTML='<div class="empty-state">Inicia sesión para ver tus taxistas recientes.</div>';return}
+ const {data,error}=await db.from("rides").select("driver_id,requested_at").eq("customer_user_id",customerUser.id).eq("status","completed").not("driver_id","is",null).order("created_at",{ascending:false}).limit(20);
+ if(error){el.innerHTML='<div class="empty-state">No se pudieron cargar los taxistas recientes.</div>';return}
+ const ids=[...new Set((data||[]).map(r=>r.driver_id))].slice(0,5);
+ const heading=document.createElement("h3");heading.textContent="Taxistas con los que has viajado";el.append(heading);
+ if(!ids.length){el.insertAdjacentHTML("beforeend",'<div class="empty-state">Aquí aparecerán tus últimos cinco taxistas cuando completes viajes.</div>');return}
+ const {data:drivers,error:driverError}=await db.from("driver_profiles").select("user_id,full_name,town").in("user_id",ids);
+ if(driverError){el.insertAdjacentHTML("beforeend",'<div class="empty-state">No se pudieron cargar los perfiles.</div>');return}
+ ids.forEach(id=>{const d=(drivers||[]).find(x=>x.user_id===id);if(!d)return;const card=document.createElement("article");card.className="ride-card";const h=document.createElement("h4");h.textContent=d.full_name||"Taxista";const p=document.createElement("p");p.textContent=d.town||"Taxi Local";card.append(h,p);el.append(card)});
+}
+
 async function loadDriverHome(){
  const list=$("#driver-home-rides");if(!list)return;list.innerHTML='<div class="empty-state">Cargando reservas recientes…</div>';
  const {data,error}=await db.from("rides").select("id,pickup_town,pickup_address,destination,passengers,requested_at,status,driver_id").order("created_at",{ascending:false}).limit(10);
