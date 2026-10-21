@@ -234,6 +234,40 @@ async function loadRides(){const list=$("#rides-list");list.innerHTML='<div clas
 $("#refresh-rides").onclick=async()=>{await loadRides();await loadDriverHome();await loadDriverRecentRides()};$("#logout").onclick=async()=>{await db.auth.signOut();currentUser=null;$("#driver-dashboard").classList.add("hidden");$("#driver-register").classList.add("hidden");$("#driver-auth").classList.remove("hidden");message(driverMessage,"Sesión cerrada.")};
 db.auth.onAuthStateChange((_event,session)=>{currentUser=session?.user||null;if(!session?.user||session.user.id!==customerUser?.id)customerUser=null;setTimeout(async()=>{if(currentUser&&String(currentUser.email||"").toLowerCase()==="salekbachirliman@gmail.com"){document.querySelectorAll(".screen").forEach(x=>x.classList.toggle("active",x.id==="driver"));const nav=document.querySelector(".bottom-nav");if(nav)nav.classList.add("hidden");["home","booking","account-choice","customer-account","customer-reservations","driver-reservations","driver-map","client-home","driver-home","account"].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.add("hidden")});const eyebrow=document.querySelector("#driver .eyebrow"),heading=document.querySelector("#driver h2"),back=document.querySelector("#driver .back");if(eyebrow)eyebrow.textContent="ZONA DE ADMINISTRACIÓN";if(heading)heading.textContent="Gestión de cuentas";if(back)back.classList.add("hidden");await showAdmin()}else{const back=document.querySelector("#driver .back");if(back)back.classList.remove("hidden");syncRoleNavigation()}},0)});
 if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+/* Actualización automática suave: refresca datos cada 15 segundos sin recargar toda la página. */
+let taxiRefreshBusy=false;
+async function taxiAutoRefresh(){
+ if(taxiRefreshBusy||document.visibilityState!=="visible"||!navigator.onLine)return;
+ if(!currentUser&&!customerUser)return;
+ taxiRefreshBusy=true;
+ try{
+  const active=document.querySelector(".screen.active");
+  const screen=active&&active.id;
+  if(currentUser&&String(currentUser.email||"").toLowerCase()==="salekbachirliman@gmail.com"){
+   if(screen==="driver"&&!document.querySelector("#admin-dashboard")?.classList.contains("hidden"))await showAdmin();
+   return;
+  }
+  if(screen==="driver"){
+   if(!document.querySelector("#driver-dashboard")?.classList.contains("hidden")){
+    await loadRides();
+    await loadDriverRecentRides();
+   }
+   if(!document.querySelector("#driver-home")?.classList.contains("hidden"))await loadDriverHome();
+   if(!document.querySelector("#driver-account-actions")?.classList.contains("hidden"))await loadDriverAccountRides();
+  }else if(screen==="customer-reservations"){
+   await loadCustomerRides();
+   await loadCustomerReservationMap();
+  }else if(screen==="account"){
+   if(!document.querySelector("#client-recent-drivers")?.classList.contains("hidden"))await loadRecentCustomerDrivers();
+   if(!document.querySelector("#driver-account-actions")?.classList.contains("hidden"))await loadDriverAccountRides();
+  }else if(screen==="home"){
+   await loadRecentCustomerDrivers();
+  }
+ }catch(error){console.warn("Actualización automática omitida:",error)}
+ finally{taxiRefreshBusy=false}
+}
+setInterval(taxiAutoRefresh,15000);
+
 
 /* Actualizar deslizando desde el borde inferior hacia arriba. */
 let refreshGestureStart=null,refreshGestureLock=false;
