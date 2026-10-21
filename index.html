@@ -36,7 +36,7 @@ window.addEventListener("error",function(e){
  if(target && e.message){target.textContent="Error JavaScript: "+e.message;target.className="message error";}
 });
 </script>
-<script src="./app-fix-20261021.js?fresh=11"></script>
+<script src="./app-fix-20261021.js?fresh=12"></script>
 <script>
 /* Fallback independiente para el formulario de conductor: no depende de que app.js haya terminado de inicializarse. */
 (function(){
@@ -120,7 +120,7 @@ window.addEventListener("error",function(e){
     else if(target.id==="go-customer"){event.preventDefault();openScreen("account-choice");}
     else if(target.id==="choose-customer"){event.preventDefault();openScreen("customer-account");}
     else if(target.id==="choose-driver"){event.preventDefault();openScreen("driver");}
-    else if(target.id==="choose-admin"){event.preventDefault();openScreen("driver");var auth=document.getElementById("driver-auth"),dash=document.getElementById("driver-dashboard"),reg=document.getElementById("driver-register");if(auth)auth.classList.remove("hidden");if(dash)dash.classList.add("hidden");if(reg)reg.classList.add("hidden");}
+    else if(target.id==="choose-admin"){event.preventDefault();openScreen("driver");var auth=document.getElementById("driver-auth"),dash=document.getElementById("driver-dashboard"),reg=document.getElementById("driver-register"),form=document.getElementById("auth-form"),field=form&&form.elements.namedItem("phone"),eyebrow=document.querySelector("#driver .eyebrow"),heading=document.querySelector("#driver h2");if(auth)auth.classList.remove("hidden");if(dash)dash.classList.add("hidden");if(reg)reg.classList.add("hidden");if(form)form.dataset.adminOnly="true";if(field){field.type="tel";field.inputMode="numeric";field.placeholder="Teléfono de administrador (9 cifras)";field.value="";}if(eyebrow)eyebrow.textContent="ZONA DE ADMINISTRACIÓN";if(heading)heading.textContent="Acceso de administración";document.querySelectorAll("#driver-auth [data-auth]").forEach(function(tab){tab.classList.add("hidden");});var tabs=document.querySelector("#driver-auth .tabs");if(tabs)tabs.classList.add("hidden");}
     else if(target.id==="go-driver"||target.id==="account-driver"){event.preventDefault();openScreen("driver");}
     else if(target.dataset.screen){event.preventDefault();openScreen(target.dataset.screen);}
     else if(target.matches("[data-customer-auth]")){
