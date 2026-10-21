@@ -8,7 +8,7 @@
 <label>Tu nombre<input name="customer_name" autocomplete="name" required minlength="2" maxlength="100" placeholder="Nombre y apellido"></label>
 <label>Teléfono<input name="customer_phone" type="tel" autocomplete="tel" required minlength="6" maxlength="30" placeholder="Tu teléfono"></label>
 <label>¿Dónde te recogemos?<select name="pickup_town" required><option value="Elda">Elda</option><option value="Petrer">Petrer</option></select></label>
-<label>Dirección de recogida<input name="pickup_address" required minlength="3" maxlength="250" placeholder="Calle, número o lugar"></label>
+<label>Dirección de recogida<input id="pickup-address" name="pickup_address" required minlength="3" maxlength="500" placeholder="Calle, número o lugar"></label><button class="secondary full location-button" type="button" id="use-location">◎ Usar mi ubicación actual</button><p id="location-message" class="form-note" role="status">Puedes permitir el acceso a tu ubicación para compartir el punto de recogida con el conductor.</p>
 <label>Destino<input name="destination" required minlength="2" maxlength="250" placeholder="¿A dónde vas?"></label>
 <label>Número de pasajeros<select name="passengers"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></label>
 <label>Notas (opcional)<textarea name="notes" maxlength="500" rows="2" placeholder="Equipaje, punto de encuentro..."></textarea></label><button class="primary submit" type="submit" id="send-ride">Solicitar taxi</button><p class="form-note">La solicitud se enviará a los conductores. No se realiza ningún cobro desde esta app.</p></form><div id="booking-message" class="message" role="status"></div></section>
