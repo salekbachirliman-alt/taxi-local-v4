@@ -3,11 +3,10 @@
 <body>
 <header class="top"><div class="brand-mark">TL</div><div><h1>Taxi Local</h1><p>Elda · Petrer</p></div><span class="live-dot"></span></header>
 <main>
-<section id="home" class="screen active"><div class="welcome"><p class="eyebrow">TU TAXI, MÁS FÁCIL</p><h2>¿A dónde<br>vamos hoy?</h2><p>Solicita un taxi en unos pocos pasos.</p></div><button class="primary big" id="go-book">Pedir taxi <span>→</span></button><button class="driver-cta big" id="go-driver">Soy conductor <span>↗</span></button><p class="small muted centered">Servicio piloto en Elda y Petrer</p></section>
+<section id="home" class="screen active"><div class="welcome"><p class="eyebrow">TU TAXI, MÁS FÁCIL</p><h2>¿A dónde<br>vamos hoy?</h2><p>Solicita un taxi en unos pocos pasos.</p></div><button class="primary big" id="go-book">Pedir taxi <span>→</span></button><button class="driver-cta big" id="go-driver">Soy conductor <span>↗</span></button><p class="small muted centered">Servicio piloto en Elda, Petrer, Monóvar y Alicante</p></section>
 <section id="booking" class="screen"><button class="back" data-screen="home">← Volver</button><p class="eyebrow">NUEVA SOLICITUD</p><h2>Pide tu taxi</h2><form id="ride-form" class="panel">
-<label>Tu nombre<input name="customer_name" autocomplete="name" required minlength="2" maxlength="100" placeholder="Nombre y apellido"></label>
 <label>Teléfono<input name="customer_phone" type="tel" autocomplete="tel" required minlength="6" maxlength="30" placeholder="Tu teléfono"></label>
-<label>¿Dónde te recogemos?<select name="pickup_town" required><option value="Elda">Elda</option><option value="Petrer">Petrer</option></select></label>
+<label>¿Dónde te recogemos?<select name="pickup_town" required><option value="Elda">Elda</option><option value="Petrer">Petrer</option><option value="Monóvar">Monóvar</option><option value="Alicante">Alicante</option></select></label>
 <label>Dirección de recogida<input id="pickup-address" name="pickup_address" required minlength="3" maxlength="500" placeholder="Calle, número o lugar"></label><button class="secondary full location-button" type="button" id="use-location">📍 Compartir mi ubicación actual</button><p id="location-message" class="form-note" role="status">Pulsa el botón para compartir automáticamente tu punto de recogida. El navegador te pedirá permiso.</p>
 <label>Destino<input name="destination" required minlength="2" maxlength="250" placeholder="¿A dónde vas?"></label>
 <label>Número de pasajeros<select name="passengers"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></label>
