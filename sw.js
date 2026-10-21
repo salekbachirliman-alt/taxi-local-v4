@@ -1,14 +1,15 @@
-const CACHE="taxi-local-v4-static-83";
-const FILES=["./","./index.html","./styles.css","./manifest.webmanifest","./taxi-local-icon.svg","./taxi-local-icon.png"];
-self.addEventListener("install",event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES)).then(()=>self.skipWaiting())));
-self.addEventListener("activate",event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith("taxi-local-v4-static-")&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
+/* Taxi Local v4: disable legacy offline cache so all devices load the same live frontend. */
+self.addEventListener("install",event=>event.waitUntil(self.skipWaiting()));
+self.addEventListener("activate",event=>event.waitUntil((async()=>{
+  try { const keys=await caches.keys(); await Promise.all(keys.filter(k=>k.startsWith("taxi-local-v4-static-")).map(k=>caches.delete(k))); } catch(_){}
+  try { await self.registration.unregister(); } catch(_){}
+  try { const clients=await self.clients.matchAll({type:"window",includeUncontrolled:true}); clients.forEach(c=>{ if(c.url.startsWith(self.location.origin)) c.navigate(c.url); }); } catch(_){}
+})()));
 self.addEventListener("fetch",event=>{
- const request=event.request;
- if(request.method!=="GET")return;
- const url=new URL(request.url);
- if(url.origin===self.location.origin && (url.pathname.endsWith("/app.js")||url.pathname.endsWith("/config.js")||url.pathname.endsWith("/index.html")||url.pathname==="/"||url.pathname.endsWith("/"))){
-  event.respondWith(fetch(request,{cache:"no-store"}).then(response=>{if(response.ok&&url.pathname.endsWith("/index.html")){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(request,copy));}return response;}).catch(()=>caches.match(request).then(cached=>cached||caches.match("./index.html"))));
-  return;
- }
- if(url.origin===self.location.origin)event.respondWith(caches.match(request).then(cached=>cached||fetch(request)));
+  const request=event.request;
+  if(request.method!=="GET")return;
+  const url=new URL(request.url);
+  if(url.origin===self.location.origin && (url.pathname.endsWith("/index.html")||url.pathname==="/"||url.pathname.endsWith("/")||url.pathname.endsWith(".js")||url.pathname.endsWith(".css"))){
+    event.respondWith(fetch(new Request(request,{cache:"no-store"})));
+  }
 });
