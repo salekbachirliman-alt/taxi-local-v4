@@ -36,7 +36,7 @@ window.addEventListener("error",function(e){
  if(target && e.message){target.textContent="Error JavaScript: "+e.message;target.className="message error";}
 });
 </script>
-<script src="./app-fix-20261021.js?fresh=12"></script>
+<script src="./app-fix-20261021.js?fresh=13"></script>
 <script>
 /* Fallback independiente para el formulario de conductor: no depende de que app.js haya terminado de inicializarse. */
 (function(){
@@ -101,6 +101,27 @@ window.addEventListener("error",function(e){
    finally{submit.disabled=false;submit.textContent=(window.__taxiDriverMode||"login")==="signup"?"Crear cuenta":"Entrar";window.__taxiDriverFallbackBusy=false}
   })();
  },true);
+})();
+
+/* Acceso tras autenticación: abrir directamente el panel correcto. */
+(function(){
+ window.__taxiDriverAfterSignup=function(user){
+  var isAdmin=String(user&&user.email||"").toLowerCase()==="salekbachirliman@gmail.com";
+  var auth=document.getElementById("driver-auth"),dash=document.getElementById(isAdmin?"admin-dashboard":"driver-dashboard"),reg=document.getElementById("driver-register");
+  if(auth)auth.classList.add("hidden");
+  if(reg)reg.classList.add("hidden");
+  if(dash)dash.classList.remove("hidden");
+  var screen=document.getElementById("driver");
+  if(screen){document.querySelectorAll(".screen").forEach(function(s){s.classList.toggle("active",s===screen);});}
+  var eyebrow=document.querySelector("#driver .eyebrow"),heading=document.querySelector("#driver h2");
+  if(eyebrow)eyebrow.textContent=isAdmin?"ZONA DE ADMINISTRACIÓN":"ZONA DE CONDUCTORES";
+  if(heading)heading.textContent=isAdmin?"Gestión de cuentas":"Panel del conductor";
+  if(isAdmin){
+   var status=document.getElementById("admin-status");if(status)status.textContent="Sesión de administración iniciada. Cargando cuentas y reservas…";
+   document.dispatchEvent(new CustomEvent("taxi-admin-login",{detail:{user:user}}));
+  }
+  window.scrollTo(0,0);
+ };
 })();
 
 /* Fallback de navegación: mantiene accesibles las pantallas principales aunque falle otro módulo JS. */
