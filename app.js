@@ -77,7 +77,7 @@ function syncRoleNavigation(){
  const reserveTab=$('.nav-item[data-screen="customer-reservations"],.nav-item[data-screen="driver-reservations"]');
  if(reserveTab){reserveTab.dataset.screen=loggedDriver?"driver-reservations":"customer-reservations";reserveTab.innerHTML="<span>▤</span>Reservas"}
  if(loggedDriver){loadDriverHome();loadDriverAccountRides();loadDriverRecentRides()}
- if(customerUser){loadCustomerRides();loadRecentCustomerDrivers()}
+ if(customerUser){loadCustomerRides();loadRecentCustomerDrivers();loadCustomerReservationMap()}
 }
 
 async function loadDriverRecentRides(){
@@ -116,13 +116,29 @@ async function loadRecentCustomerDrivers(){
  ids.forEach(id=>{const d=(drivers||[]).find(x=>x.user_id===id);if(!d)return;const card=document.createElement("article");card.className="ride-card";const h=document.createElement("h4");h.textContent=d.full_name||"Taxista";const p=document.createElement("p");p.textContent=d.town||"Taxi Local";card.append(h,p);el.append(card)});
 }
 
+let driverHomeMap=null,customerReservationsMap=null;
+const townCenters={"Elda":[38.4778,-0.7916],"Petrer":[38.4849,-0.7725],"Monóvar":[38.4389,-0.8408],"Alicante":[38.3452,-0.4815],"Ambas":[38.4778,-0.7916]};
+function pointFromAddress(address,town){const m=String(address||"").match(/maps\.google\.com\/\?q=(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);return m?[Number(m[1]),Number(m[2])]:(townCenters[town]||townCenters.Elda)}
 async function loadDriverHome(){
- const list=$("#driver-home-rides");if(!list)return;list.innerHTML='<div class="empty-state">Cargando reservas recientes…</div>';
- const {data,error}=await db.from("rides").select("id,pickup_town,pickup_address,destination,passengers,requested_at,status,driver_id").order("created_at",{ascending:false}).limit(10);
- if(error){list.innerHTML='<div class="empty-state">No se pudieron cargar las reservas.</div>';return}
+ const list=$("#driver-home-rides"),mapEl=$("#driver-home-map");if(!list||!mapEl)return;
+ list.innerHTML='<div class="empty-state">Cargando reservas disponibles…</div>';
+ const {data,error}=await db.from("rides").select("id,pickup_town,pickup_address,destination,customer_name,customer_phone,passengers,requested_at,status,driver_id").eq("status","pending").is("driver_id",null).order("created_at",{ascending:false}).limit(30);
+ if(error){list.innerHTML='<div class="empty-state">No se pudieron cargar las reservas disponibles.</div>';return}
+ if(window.L){if(driverHomeMap)driverHomeMap.remove();driverHomeMap=L.map("driver-home-map").setView(townCenters.Elda,11);L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(driverHomeMap);(data||[]).forEach(r=>{const p=pointFromAddress(r.pickup_address,r.pickup_town);L.circleMarker(p,{radius:9,color:"#fff",weight:2,fillColor:"#facc15",fillOpacity:1}).addTo(driverHomeMap).bindPopup("Recogida · "+escapeHtml(r.pickup_town)+"<br>"+escapeHtml(r.pickup_address))});setTimeout(()=>driverHomeMap&&driverHomeMap.invalidateSize(),200)}
  list.innerHTML="";
- if(!data?.length){list.innerHTML='<div class="empty-state">Todavía no hay reservas.</div>';return}
- data.forEach(r=>{const el=document.createElement("article");el.className="ride-card";const h=document.createElement("h4");h.textContent=r.pickup_town+" · "+r.pickup_address;const p=document.createElement("p");p.textContent="Destino: "+r.destination;const s=document.createElement("span");s.className="status";s.textContent=r.status;el.append(h,p,s);list.append(el)});
+ if(!data?.length){list.innerHTML='<div class="empty-state">No hay reservas disponibles ahora.</div>';return}
+ data.forEach(r=>{const el=document.createElement("article");el.className="ride-card";const h=document.createElement("h4");h.textContent=r.pickup_town+" · "+r.pickup_address;const p=document.createElement("p");p.textContent="Destino: "+r.destination;const who=document.createElement("p");who.textContent=(r.customer_name||"Cliente")+" · "+r.customer_phone;const call=document.createElement("a");call.href="tel:"+String(r.customer_phone||"").replace(/[^+\d]/g,"");call.textContent="Llamar al cliente";call.className="map-link";const s=document.createElement("span");s.className="status";s.textContent="Disponible";const accept=document.createElement("button");accept.className="primary full";accept.textContent="Aceptar reserva";accept.onclick=async()=>{accept.disabled=true;const {error}=await db.from("rides").update({status:"accepted",driver_id:currentUser.id}).eq("id",r.id).eq("status","pending").is("driver_id",null);if(error){accept.disabled=false;message(driverMessage,errText(error),"error")}else{message(driverMessage,"Reserva aceptada. Ya no aparecerá a otros conductores.","success");await loadDriverHome();await loadRides()}};el.append(h,p,who,call,s,accept);list.append(el)});
+}
+async function loadCustomerReservationMap(){
+ const mapEl=$("#customer-reservations-map"),list=$("#customer-local-drivers");if(!mapEl||!list)return;
+ if(!customerUser){list.innerHTML='<div class="empty-state">Inicia sesión para ver taxis disponibles de tu localidad.</div>';return}
+ const town=lastPickupTown||"Elda";
+ const {data,error}=await db.from("driver_profiles").select("user_id,username,full_name,phone,town,latitude,longitude").eq("status","approved").eq("is_available",true).in("town",[town,"Ambas"]).limit(50);
+ if(error){list.innerHTML='<div class="empty-state">No se pudieron cargar los taxis disponibles.</div>';return}
+ if(window.L){if(customerReservationsMap)customerReservationsMap.remove();customerReservationsMap=L.map("customer-reservations-map").setView(townCenters[town]||townCenters.Elda,13);L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(customerReservationsMap);(data||[]).forEach(d=>{if(d.latitude!=null&&d.longitude!=null)L.circleMarker([d.latitude,d.longitude],{radius:9,color:"#fff",weight:2,fillColor:"#facc15",fillOpacity:1}).addTo(customerReservationsMap).bindPopup(escapeHtml(d.username||d.full_name||"Taxista"))});setTimeout(()=>customerReservationsMap&&customerReservationsMap.invalidateSize(),200)}
+ list.innerHTML="";
+ if(!data?.length){list.innerHTML='<div class="empty-state">No hay taxis disponibles en '+escapeHtml(town)+' ahora mismo.</div>';return}
+ data.forEach(d=>{const el=document.createElement("article");el.className="ride-card";const h=document.createElement("h4");h.textContent=d.username||d.full_name||"Taxista";const p=document.createElement("p");p.textContent=d.town;const status=document.createElement("span");status.className="status";status.textContent="Disponible";el.append(h,p,status);list.append(el)})
 }
 
 function escapeHtml(value){return String(value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]))}
