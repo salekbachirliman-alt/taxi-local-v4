@@ -25,7 +25,7 @@ $("#ride-form").elements.namedItem("customer_name")?.addEventListener("input",e=
 $("#ride-form").elements.namedItem("customer_phone")?.addEventListener("input",e=>saveBookingDetails($("#ride-form").elements.namedItem("customer_name").value,e.target.value));
 
 async function submitRide(e){
- e.preventDefault();const form=e.currentTarget,btn=$("#send-booking")||form.querySelector('[type="submit"]'),f=new FormData(form);
+ e.preventDefault();const form=e.currentTarget,btn=$("#send-ride")||form.querySelector('[type="submit"]'),f=new FormData(form);
  if(window.__taxiRideBusy)return;window.__taxiRideBusy=true;if(btn){btn.disabled=true;btn.textContent="Guardando reserva…"}
  message(bookingMessage,"Guardando tu solicitud…");
  try{
@@ -52,7 +52,7 @@ restoreBookingDetails();
 db.auth.getSession().then(()=>syncCustomer()).catch(()=>{});
 
 
-$("#go-book").onclick=()=>{show("booking");restoreBookingDetails()};$("#go-customer").onclick=()=>show("account-choice");$("#go-customer-account").onclick=()=>show("account-choice");$("#choose-customer").onclick=()=>{show("customer-account");syncCustomer()};$("#choose-driver").onclick=()=>{show("driver");syncDriver()};$("#choose-admin").onclick=()=>{show("driver");$("#driver-auth").classList.remove("hidden");$("#driver-dashboard").classList.add("hidden");$("#driver-register").classList.add("hidden");$("#auth-form").dataset.adminOnly="true";$("#auth-form [data-auth=\"signup\"]")?.classList.add("hidden");$("#auth-form [data-auth=\"login\"]")?.classList.add("hidden");$("#auth-form").querySelector(".tabs")?.classList.add("hidden");$("#auth-form [name=username]")?.closest("label")?.classList.add("hidden");$("#signup-fields").classList.add("hidden");$("#signup-phone-wrap").classList.add("hidden");$("#auth-form [name=phone]").placeholder="Correo de administrador";$("#auth-form [name=phone]").type="email";$("#auth-form [name=phone]").value="";$("#auth-submit").textContent="Iniciar sesión";message(driverMessage,"Acceso exclusivo de administración.")};$("#customer-to-book").onclick=()=>{show("booking");restoreBookingDetails()};$("#choose-driver").onclick=()=>{show("driver");syncDriver()};$("#choose-admin").onclick=()=>{show("driver");$("#driver-auth").classList.remove("hidden");$("#driver-dashboard").classList.add("hidden");$("#driver-register").classList.add("hidden");message(driverMessage,"Acceso exclusivo de administración: entra con la cuenta autorizada.")};
+$("#go-book").onclick=()=>{show("booking");restoreBookingDetails()};$("#go-customer").onclick=()=>show("account-choice");$("#go-customer-account").onclick=()=>show("account-choice");$("#choose-customer").onclick=()=>{show("customer-account");syncCustomer()};$("#choose-driver").onclick=()=>{show("driver");$("#auth-form").dataset.adminOnly="false";$("#driver-auth .tabs")?.classList.remove("hidden");$("#driver-auth [data-auth=\"signup\"]")?.classList.remove("hidden");$("#signup-fields label")?.classList.remove("hidden");$("#auth-form [name=phone]").type="text";$("#auth-form [name=phone]").placeholder="Teléfono o nombre de usuario";$("#auth-form [name=phone]").value="";$("#auth-submit").textContent="Entrar";syncDriver()};$("#choose-admin").onclick=()=>{show("driver");$("#driver-auth").classList.remove("hidden");$("#driver-dashboard").classList.add("hidden");$("#driver-register").classList.add("hidden");$("#auth-form").dataset.adminOnly="true";$("#driver-auth [data-auth=\"signup\"]")?.classList.add("hidden");$("#driver-auth .tabs")?.classList.add("hidden");$("#auth-form [name=username]")?.closest("label")?.classList.add("hidden");$("#signup-fields").classList.add("hidden");$("#signup-phone-wrap").classList.add("hidden");$("#auth-form [name=phone]").placeholder="Correo de administrador";$("#auth-form [name=phone]").type="email";$("#auth-form [name=phone]").value="";$("#auth-submit").textContent="Iniciar sesión";message(driverMessage,"Acceso exclusivo de administración.")};$("#customer-to-book").onclick=()=>{show("booking");restoreBookingDetails()};
 $$("[data-screen]").forEach(b=>b.addEventListener("click",()=>{show(b.dataset.screen);if(b.dataset.screen==="driver")syncDriver();if(b.dataset.screen==="customer-reservations")loadCustomerReservationMap();if(b.dataset.screen==="driver-reservations")loadDriverRecentRides()}));
 $$(".back").forEach(b=>b.addEventListener("click",()=>show(b.dataset.screen)));
 document.addEventListener("click",e=>{const b=e.target.closest("[data-auth]");if(!b)return;e.preventDefault();authMode=b.dataset.auth;$$("[data-auth]").forEach(t=>t.classList.toggle("selected",t===b));$("#auth-submit").textContent=authMode==="login"?"Entrar":"Crear cuenta";$("#signup-fields").classList.toggle("hidden",authMode!=="signup");$("#auth-form [name=username]").required=authMode==="signup";$("#signup-phone-wrap").classList.toggle("hidden",authMode!=="signup");$("#auth-form [name=signup_phone]").required=authMode==="signup";$("#auth-form [name=phone]").closest("label").classList.toggle("hidden",authMode==="signup");$("#auth-form [name=phone]").required=authMode==="login";$("#sms-verify-form").classList.add("hidden");$("#driver-register").classList.add("hidden");message(driverMessage,"")});
@@ -84,6 +84,23 @@ async function loadCustomerRides(){
  if(!data?.length){list.innerHTML='<div class="empty-state">Todavía no tienes reservas registradas.</div>';current.innerHTML='';return}
  const makeCard=(r)=>{const el=document.createElement("article");el.className="ride-card";const h=document.createElement("h4");h.textContent=r.pickup_town+" · "+r.pickup_address;const p=document.createElement("p");p.textContent="Destino: "+r.destination;const s=document.createElement("span");s.className="status";s.textContent=({pending:"Buscando taxi",accepted:"Taxi asignado",completed:"Realizada",cancelled:"Cancelada"})[r.status]||r.status;el.append(h,p,s);return el};
  list.innerHTML="";data.forEach(r=>list.append(makeCard(r)));current.innerHTML="";current.append(makeCard(data[0]));
+}
+async function syncCustomer(){
+ const {data:{user},error:authError}=await db.auth.getUser();
+ if(authError||!user){customerUser=null;syncRoleNavigation();return}
+ const {data:profile,error}=await db.from("customer_profiles").select("user_id,username,full_name,phone").eq("user_id",user.id).maybeSingle();
+ if(error)throw error;
+ if(!profile){customerUser=null;syncRoleNavigation();return}
+ customerUser={...profile,id:user.id,email:user.email};
+ $("#customer-profile").classList.remove("hidden");
+ $("#customer-auth-form").classList.add("hidden");
+ $("#client-account-profile").classList.remove("hidden");
+ $("#client-account-guest").classList.add("hidden");
+ $("#client-account-username").textContent=customerUser.username||customerUser.full_name||"Mi cuenta";
+ $("#client-account-phone").textContent=customerUser.phone||"—";
+ saveBookingDetails(customerUser.username||customerUser.full_name,customerUser.phone);
+ syncRoleNavigation();
+ await loadCustomerRides();
 }
 function syncRoleNavigation(){
  const isAdmin=!!currentUser && String(currentUser.email||"").toLowerCase()==="salekbachirliman@gmail.com";
