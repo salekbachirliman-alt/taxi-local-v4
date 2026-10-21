@@ -36,7 +36,7 @@ window.addEventListener("error",function(e){
  if(target && e.message){target.textContent="Error JavaScript: "+e.message;target.className="message error";}
 });
 </script>
-<script src="./app-fix-20261021.js?fresh=10"></script>
+<script src="./app-fix-20261021.js?fresh=11"></script>
 <script>
 /* Fallback independiente para el formulario de conductor: no depende de que app.js haya terminado de inicializarse. */
 (function(){
@@ -76,7 +76,26 @@ window.addEventListener("error",function(e){
      say("Cuenta creada e inicio de sesión realizado. Si no aparece el panel, recarga la página.","success");
      if(typeof window.__taxiDriverAfterSignup==="function")window.__taxiDriverAfterSignup(login.data.user);
     }else{
-     say("El formulario de acceso principal no está disponible. Recarga la página y vuelve a intentarlo.","error");
+     var identifier=String(f.get("phone")||"").trim();
+     var digits=identifier.replace(/[^0-9]/g,"");
+     if(document.getElementById("auth-form").dataset.adminOnly==="true"){
+      if(digits.length===11&&digits.indexOf("34")===0)digits=digits.slice(2);
+      if(digits.length!==9)throw Error("Introduce el teléfono de administrador de 9 cifras.");
+      if(digits!=="641445360")throw Error("Teléfono de administrador incorrecto.");
+      var adminResult=await db.auth.signInWithPassword({email:"salekbachirliman@gmail.com",password:password});
+      if(adminResult.error)throw adminResult.error;
+      say("Acceso de administración correcto.","success");
+      if(typeof window.__taxiDriverAfterSignup==="function")window.__taxiDriverAfterSignup(adminResult.data.user);
+     }else{
+      var loginResult=await db.functions.invoke("driver-auth",{body:{action:"login",identifier:identifier,password:password}});
+      if(loginResult.error){var detail="";try{detail=(await loginResult.error.context.json()).error||""}catch(ignore){}throw Error(detail||loginResult.error.message||"No se pudo iniciar sesión.");}
+      if(loginResult.data&&loginResult.data.error)throw Error(loginResult.data.error);
+      if(!loginResult.data||!loginResult.data.email)throw Error("No se encontró la cuenta de conductor.");
+      var driverResult=await db.auth.signInWithPassword({email:loginResult.data.email,password:password});
+      if(driverResult.error)throw driverResult.error;
+      say("Sesión iniciada correctamente.","success");
+      if(typeof window.__taxiDriverAfterSignup==="function")window.__taxiDriverAfterSignup(driverResult.data.user);
+     }
     }
    }catch(err){say(err.message||String(err),"error")}
    finally{submit.disabled=false;submit.textContent=(window.__taxiDriverMode||"login")==="signup"?"Crear cuenta":"Entrar";window.__taxiDriverFallbackBusy=false}
