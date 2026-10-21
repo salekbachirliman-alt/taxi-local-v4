@@ -46,6 +46,24 @@ async function submitRide(e){
  }catch(err){message(bookingMessage,await errText(err),"error")}
  finally{if(btn){btn.disabled=false;btn.textContent="Solicitar taxi"}window.__taxiRideBusy=false}
 }
+
+$("#use-location").addEventListener("click",()=>{
+ const button=$("#use-location"),field=$("#pickup-address");
+ if(!navigator.geolocation){message(locationMessage,"Este navegador no permite compartir la ubicación. Escribe la dirección manualmente.","error");return}
+ button.disabled=true;button.textContent="Obteniendo ubicación…";message(locationMessage,"Solicitando permiso de ubicación…");
+ navigator.geolocation.getCurrentPosition(pos=>{
+  const lat=pos.coords.latitude,lon=pos.coords.longitude;
+  field.value="https://maps.google.com/?q="+lat+","+lon;
+  lastPickupTown=String($("#ride-form").elements.namedItem("pickup_town").value||"Elda");
+  message(locationMessage,"Ubicación exacta guardada. El conductor verá el punto de recogida en el mapa.","success");
+  button.textContent="📍 Ubicación compartida";button.disabled=false;
+ },err=>{
+  message(locationMessage,err.code===1?"Permiso denegado. Activa la ubicación para Safari en Ajustes o escribe la dirección manualmente.":"No se pudo obtener la ubicación. Comprueba el GPS y vuelve a intentarlo.","error");
+  button.textContent="📍 Compartir mi ubicación actual";button.disabled=false;
+ },{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+});
+$("#ride-form").elements.namedItem("pickup_town").addEventListener("change",()=>{lastPickupTown=$("#ride-form").elements.namedItem("pickup_town").value});
+
 $("#ride-form").addEventListener("submit",submitRide);
 
 restoreBookingDetails();
@@ -169,14 +187,17 @@ async function loadDriverHome(){
  const {data:profile,error:profileError}=await db.from("driver_profiles").select("town,status,is_available,latitude,longitude").eq("user_id",currentUser.id).maybeSingle();
  if(profileError){list.innerHTML='<div class="empty-state">No se pudo consultar el perfil del conductor.</div>';return}
  if(!profile||profile.status!=="approved"){list.innerHTML='<div class="empty-state">Tu cuenta está pendiente de aprobación. Cuando la administración la apruebe podrás activar la disponibilidad y recibir reservas.</div>';return}
- if(!profile.is_available){list.innerHTML='<div class="empty-state">Activa tu disponibilidad para ver y aceptar las reservas cercanas.</div>';if(window.driverHomeMap){window.driverHomeMap.remove();window.driverHomeMap=null}return}
+ if(!profile.is_available){list.innerHTML='<div class="empty-state">Activa tu disponibilidad para ver y aceptar reservas. Pulsa el botón de disponibilidad del panel del conductor.</div>';if(window.driverHomeMap){window.driverHomeMap.remove();window.driverHomeMap=null}return}
  const town=profile.town||"Elda",center=townCenters[town]||townCenters.Elda;
- const {data,error}=await db.from("rides").select("id,customer_name,customer_phone,pickup_town,pickup_address,destination,passengers,requested_at,status,driver_id").eq("status","pending").is("driver_id",null).eq("pickup_town",town).order("created_at",{ascending:false}).limit(30);
+ let query=db.from("rides").select("id,customer_name,customer_phone,pickup_town,pickup_address,destination,passengers,requested_at,status,driver_id").in("status",["pending","accepted"]).order("created_at",{ascending:false}).limit(50);
+ query=query.or("and(status.eq.pending,driver_id.is.null),driver_id.eq."+currentUser.id);
+ if(town!=="Ambas")query=query.eq("pickup_town",town);
+ const {data,error}=await query;
  if(error){list.innerHTML='<div class="empty-state">No se pudieron cargar las reservas: '+escapeHtml(error.message)+'</div>';return}
- if(window.L){if(window.driverHomeMap)window.driverHomeMap.remove();window.driverHomeMap=L.map(mapEl).setView([profile.latitude??center[0],profile.longitude??center[1]],12);L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(window.driverHomeMap);if(profile.latitude!=null&&profile.longitude!=null)L.circleMarker([profile.latitude,profile.longitude],{radius:8,color:"#fff",weight:2,fillColor:"#2563eb",fillOpacity:1}).addTo(window.driverHomeMap).bindPopup("Tu ubicación");(data||[]).forEach(r=>{const point=pointFromAddress(r.pickup_address,r.pickup_town);L.circleMarker(point,{radius:9,color:"#fff",weight:2,fillColor:"#facc15",fillOpacity:1}).addTo(window.driverHomeMap).bindPopup("Reserva · "+escapeHtml(r.pickup_town)+"<br>"+escapeHtml(r.pickup_address))});setTimeout(()=>window.driverHomeMap&&window.driverHomeMap.invalidateSize(),200)}
+ if(window.L){if(window.driverHomeMap)window.driverHomeMap.remove();window.driverHomeMap=L.map(mapEl).setView([profile.latitude??center[0],profile.longitude??center[1]],12);L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(window.driverHomeMap);if(profile.latitude!=null&&profile.longitude!=null)L.circleMarker([profile.latitude,profile.longitude],{radius:8,color:"#fff",weight:2,fillColor:"#2563eb",fillOpacity:1}).addTo(window.driverHomeMap).bindPopup("Tu ubicación");(data||[]).forEach(r=>{const point=pointFromAddress(r.pickup_address,r.pickup_town);L.circleMarker(point,{radius:9,color:"#fff",weight:2,fillColor:r.status==="accepted"?"#16a34a":"#facc15",fillOpacity:1}).addTo(window.driverHomeMap).bindPopup((r.status==="accepted"?"Tu reserva aceptada":"Nueva reserva")+" · "+escapeHtml(r.pickup_town)+"<br>"+escapeHtml(r.pickup_address))});setTimeout(()=>window.driverHomeMap&&window.driverHomeMap.invalidateSize(),200)}
  list.innerHTML="";
- if(!data?.length){list.innerHTML='<div class="empty-state">No hay reservas pendientes en '+escapeHtml(town)+' ahora mismo.</div>';return}
- data.forEach(r=>{const el=document.createElement("article");el.className="ride-card";const h=document.createElement("h4");h.textContent=r.pickup_town+" · "+r.pickup_address;const p=document.createElement("p");p.textContent="Destino: "+r.destination;const who=document.createElement("p");who.textContent=(r.customer_name||"Cliente")+" · "+r.customer_phone;const call=document.createElement("a");call.href="tel:"+String(r.customer_phone||"").replace(/[^\d+]/g,"");call.textContent="Llamar al cliente";call.className="map-link";const accept=document.createElement("button");accept.className="primary full";accept.textContent="Aceptar reserva";accept.onclick=async()=>{accept.disabled=true;const {error}=await db.from("rides").update({status:"accepted",driver_id:currentUser.id}).eq("id",r.id).eq("status","pending").is("driver_id",null);if(error){accept.disabled=false;message(driverMessage,errText(error),"error")}else{message(driverMessage,"Reserva aceptada. Ya no aparecerá a otros conductores.","success");await loadDriverHome();await loadRides();await loadDriverRecentRides()}};el.append(h,p,who,call,accept);list.append(el)});
+ if(!data?.length){list.innerHTML='<div class="empty-state">No hay reservas pendientes en '+escapeHtml(town)+' ni servicios asignados ahora mismo.</div>';return}
+ data.forEach(r=>{const el=document.createElement("article");el.className="ride-card";const h=document.createElement("h4");h.textContent=r.pickup_town+" · "+r.pickup_address;const p=document.createElement("p");p.textContent="Destino: "+r.destination;const who=document.createElement("p");who.textContent=(r.customer_name||"Cliente")+" · "+r.customer_phone;const call=document.createElement("a");call.href="tel:"+String(r.customer_phone||"").replace(/[^\d+]/g,"");call.textContent="Llamar al cliente";call.className="map-link";const status=document.createElement("span");status.className="status";status.textContent=r.status==="accepted"?"Reserva aceptada · En curso":"Nueva reserva";el.append(h,p,who,call,status);if(r.status==="pending"&&!r.driver_id){const accept=document.createElement("button");accept.className="primary full";accept.textContent="Aceptar reserva";accept.onclick=async()=>{accept.disabled=true;const {error}=await db.from("rides").update({status:"accepted",driver_id:currentUser.id}).eq("id",r.id).eq("status","pending").is("driver_id",null);if(error){accept.disabled=false;message(driverMessage,errText(error),"error")}else{message(driverMessage,"Reserva aceptada. Ya no aparecerá a otros conductores.","success");await loadDriverHome();await loadRides();await loadDriverRecentRides()}};el.append(accept)}list.append(el)});
 }
 
 async function loadCustomerReservationMap(){
