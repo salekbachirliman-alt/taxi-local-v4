@@ -21,7 +21,7 @@ restoreBookingDetails();
 db.auth.getSession().then(()=>syncCustomer()).catch(()=>{});
 
 
-$("#go-book").onclick=()=>{show("booking");restoreBookingDetails()};$("#go-customer").onclick=()=>{show("customer-account");syncCustomer()};$("#customer-to-book").onclick=()=>{show("booking");restoreBookingDetails()};$("#go-driver").onclick=()=>{show("driver");syncDriver()};$("#account-driver").onclick=()=>{show("driver");syncDriver()};$("#account-admin").onclick=()=>{show("driver");$("#driver-auth").classList.remove("hidden");$("#driver-dashboard").classList.add("hidden");$("#driver-register").classList.add("hidden");message(driverMessage,"Acceso exclusivo de administración: entra con la cuenta autorizada.")};
+$("#go-book").onclick=()=>{show("booking");restoreBookingDetails()};$("#go-customer").onclick=()=>show("account-choice");$("#choose-customer").onclick=()=>{show("customer-account");syncCustomer()};$("#choose-driver").onclick=()=>{show("driver");syncDriver()};$("#choose-admin").onclick=()=>{show("driver");$("#driver-auth").classList.remove("hidden");$("#driver-dashboard").classList.add("hidden");$("#driver-register").classList.add("hidden");message(driverMessage,"Acceso exclusivo de administración: entra con la cuenta autorizada.")};$("#customer-to-book").onclick=()=>{show("booking");restoreBookingDetails()};$("#go-driver").onclick=()=>{show("driver");syncDriver()};$("#account-driver").onclick=()=>{show("driver");syncDriver()};$("#account-admin").onclick=()=>{show("driver");$("#driver-auth").classList.remove("hidden");$("#driver-dashboard").classList.add("hidden");$("#driver-register").classList.add("hidden");message(driverMessage,"Acceso exclusivo de administración: entra con la cuenta autorizada.")};
 $$("[data-screen]").forEach(b=>b.addEventListener("click",()=>{show(b.dataset.screen);if(b.dataset.screen==="driver")syncDriver()}));
 $$(".back").forEach(b=>b.addEventListener("click",()=>show(b.dataset.screen)));
 $$("[data-auth]").forEach(b=>b.addEventListener("click",()=>{authMode=b.dataset.auth;$$("[data-auth]").forEach(t=>t.classList.toggle("selected",t===b));$("#auth-submit").textContent=authMode==="login"?"Entrar":"Crear cuenta";$("#signup-fields").classList.toggle("hidden",authMode!=="signup");$("#auth-form [name=username]").required=authMode==="signup";$("#signup-phone-wrap").classList.toggle("hidden",authMode!=="signup");$("#auth-form [name=signup_phone]").required=authMode==="signup";$("#auth-form [name=phone]").closest("label").classList.toggle("hidden",authMode==="signup");$("#auth-form [name=phone]").required=authMode==="login";$("#auth-form [name=phone]").placeholder="Teléfono o nombre de usuario";$("#sms-verify-form").classList.add("hidden");$("#driver-register").classList.add("hidden");message(driverMessage,"")}));
@@ -58,7 +58,12 @@ async function loadCustomerRides(){
  list.innerHTML="";data.forEach(r=>list.append(makeCard(r)));current.innerHTML="";current.append(makeCard(data[0]));
 }
 function syncRoleNavigation(){
- const loggedDriver=!!currentUser && !customerUser;
+ const isAdmin=!!currentUser && String(currentUser.email||"").toLowerCase()==="salekbachirliman@gmail.com";
+ const loggedDriver=!!currentUser && !customerUser && !isAdmin;
+ const nav=$(".bottom-nav");
+ if(nav)nav.classList.toggle("hidden",!currentUser && !customerUser || isAdmin);
+ $("#customer-reservations").classList.toggle("hidden",loggedDriver || isAdmin);
+ $("#driver-map").classList.toggle("hidden",loggedDriver || isAdmin);
  $("#client-home").classList.toggle("hidden",loggedDriver);
  $("#driver-home").classList.toggle("hidden",!loggedDriver);
  $("#client-account-actions").classList.toggle("hidden",loggedDriver);
