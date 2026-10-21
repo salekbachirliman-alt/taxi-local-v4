@@ -69,7 +69,7 @@ window.addEventListener("error",function(e){
      if(phone.length===11&&phone.startsWith("34"))phone=phone.slice(2);
      if(phone.length!==9)throw Error("Introduce un teléfono español de 9 cifras, sin +34.");
      var result=await db.functions.invoke("driver-auth",{body:{action:"signup",username:username,phone:phone,full_name:username,town:String(f.get("town")||"Elda"),password:password}});
-     if(result.error){var details="";try{details=(await result.error.context.json()).error||""}catch(_){}throw Error(details||result.error.message||"Error del servicio de registro")}
+     if(result.error){var details="";try{var response=result.error.context;var body=response&&typeof response.clone==="function"?await response.clone().json():{};details=body.error||body.message||body.msg||body.details||body.hint||""}catch(_){}throw Error(details||result.error.message||"Error del servicio de registro")}
      if(result.data&&result.data.error)throw Error(result.data.error);
      if(!result.data||!result.data.email)throw Error("El servidor no devolvió el correo interno de la cuenta.");
      var login=await db.auth.signInWithPassword({email:result.data.email,password:password});if(login.error)throw login.error;
@@ -96,7 +96,7 @@ window.addEventListener("error",function(e){
       document.dispatchEvent(new CustomEvent("taxi-admin-login",{detail:{user:adminResult.data.user}}));
      }else{
       var loginResult=await db.functions.invoke("driver-auth",{body:{action:"login",identifier:identifier,password:password}});
-      if(loginResult.error){var detail="";try{detail=(await loginResult.error.context.json()).error||""}catch(ignore){}throw Error(detail||loginResult.error.message||"No se pudo iniciar sesión.");}
+      if(loginResult.error){var detail="";try{var response=loginResult.error.context;var body=response&&typeof response.clone==="function"?await response.clone().json():{};detail=body.error||body.message||body.msg||body.details||body.hint||""}catch(ignore){}throw Error(detail||loginResult.error.message||"No se pudo iniciar sesión.");}
       if(loginResult.data&&loginResult.data.error)throw Error(loginResult.data.error);
       if(!loginResult.data||!loginResult.data.email)throw Error("No se encontró la cuenta de conductor.");
       var driverResult=await db.auth.signInWithPassword({email:loginResult.data.email,password:password});
