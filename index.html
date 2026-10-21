@@ -21,8 +21,54 @@
 <div id="admin-dashboard" class="hidden"><h3>Administración</h3><p id="admin-status" class="form-note">Gestión de conductores y reservas.</p><div class="driver-head"><h3>Cuentas por confirmar</h3><button id="admin-refresh" class="secondary">Actualizar ↻</button></div><div id="admin-pending-users"></div><div class="driver-head"><h3>Perfiles de conductores</h3></div><div id="admin-drivers"></div><div class="driver-head"><h3>Todas las reservas</h3></div><div id="admin-rides"></div><button id="admin-logout" class="secondary full">Cerrar sesión de administrador</button></div><div id="driver-dashboard" class="hidden"><div class="driver-head"><div><h3>Reservas</h3><p id="driver-status" class="muted small"></p></div><button id="refresh-rides" class="secondary">Actualizar ↻</button></div><button id="availability-toggle" class="primary full">📍 Activar disponibilidad y compartir ubicación</button><p id="availability-message" class="form-note">Para aparecer en el mapa de clientes, el conductor debe estar aprobado y activar su disponibilidad.</p><div class="driver-head"><h3>Mapa de reservas recientes</h3></div><div id="driver-rides-map" class="map-canvas" aria-label="Mapa de reservas recientes"></div><div id="rides-list"></div><button id="logout" class="secondary full">Cerrar sesión</button></div><div id="driver-message" class="message" role="status"></div></section>
 <section id="account" class="screen"><p class="eyebrow">MI CUENTA</p><h2 id="account-title">Usuario</h2><div id="client-account-actions"><div id="client-account-guest"><button class="primary full" id="go-customer-account" type="button">Iniciar sesión / Crear cuenta</button><p class="form-note">Inicia sesión para guardar tus datos y consultar tus viajes.</p></div><div id="client-account-profile" class="panel hidden"><h3 id="client-account-username">Tu cuenta</h3><p>Número de teléfono: <strong id="client-account-phone">—</strong></p><button id="client-account-logout" class="secondary full" type="button">Cerrar sesión</button></div><div id="client-recent-drivers"></div></div><div id="driver-account-actions" class="hidden"><div id="driver-account-status" class="panel"><button id="availability-toggle-account" class="primary full">📍 Activar disponibilidad</button><p id="availability-message-account" class="form-note"></p></div><h3>Reservas activas</h3><div id="driver-active-rides"></div><h3>Reservas realizadas</h3><div id="driver-completed-rides"></div><button id="logout-account" class="secondary full">Cerrar sesión</button></div><div class="panel"><button class="secondary full" id="install-app" type="button">⬇ Instalar Taxi Local</button><p id="install-help-account" class="small muted" role="status">Añade Taxi Local a la pantalla de inicio.</p></div></section>
 </main><nav class="bottom-nav hidden" aria-label="Navegación principal"><button class="nav-item active" data-screen="home"><span>⌂</span>Inicio</button><button class="nav-item" data-screen="customer-reservations"><span>▤</span>Reservas</button><button class="nav-item" data-screen="account"><span>◉</span>Usuario</button></nav>
-<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js?v=20261021rebuild1"></script><script src="./app.js?v=20261021driverfix5"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js?v=20261021rebuild1"></script><script src="./app.js?v=20261021driverfix6"></script>
 <script>
+/* Fallback independiente para el formulario de conductor: no depende de que app.js haya terminado de inicializarse. */
+(function(){
+ document.addEventListener("click",function(ev){
+  var tab=ev.target.closest("#driver-auth [data-auth]");
+  if(tab){
+   ev.preventDefault();
+   var signup=tab.dataset.auth==="signup";
+   document.querySelectorAll("#driver-auth [data-auth]").forEach(function(x){x.classList.toggle("selected",x===tab)});
+   var sf=document.getElementById("signup-fields"), pw=document.getElementById("signup-phone-wrap"), form=document.getElementById("auth-form"), btn=document.getElementById("auth-submit");
+   if(sf)sf.classList.toggle("hidden",!signup);if(pw)pw.classList.toggle("hidden",!signup);
+   if(form){var u=form.querySelector('[name="username"]'),p=form.querySelector('[name="signup_phone"]'),id=form.querySelector('[name="phone"]');if(u)u.required=signup;if(p)p.required=signup;if(id){id.required=!signup;var lab=id.closest("label");if(lab)lab.classList.toggle("hidden",signup)}}
+   if(btn)btn.textContent=signup?"Crear cuenta":"Entrar";
+   window.__taxiDriverMode=signup?"signup":"login";
+   return;
+  }
+  var submit=ev.target.closest("#auth-submit");
+  if(!submit||window.__taxiDriverFallbackBusy)return;
+  ev.preventDefault();ev.stopImmediatePropagation();
+  window.__taxiDriverFallbackBusy=true;
+  (async function(){
+   var form=document.getElementById("auth-form"),f=new FormData(form),msg=document.getElementById("driver-message"),mode=window.__taxiDriverMode||"login",password=String(f.get("password")||"");
+   function say(t,kind){if(msg){msg.textContent=t;msg.className="message "+(kind||"")}}
+   submit.disabled=true;submit.textContent=mode==="signup"?"Creando cuenta…":"Entrando…";say("Procesando acceso…");
+   try{
+    var cfg=window.TAXI_CONFIG||{},db=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey);
+    if(mode==="signup"){
+     var username=String(f.get("username")||"").trim().toLowerCase(),phone=String(f.get("signup_phone")||"").replace(/\D/g,"");
+     if(!/^[a-z0-9_]{3,24}$/.test(username))throw Error("El nombre de usuario debe tener 3-24 caracteres: letras, números o guion bajo.");
+     if(phone.length===11&&phone.startsWith("34"))phone=phone.slice(2);
+     if(phone.length!==9)throw Error("Introduce un teléfono español de 9 cifras, sin +34.");
+     var result=await db.functions.invoke("driver-auth",{body:{action:"signup",username:username,phone:phone,full_name:username,town:String(f.get("town")||"Elda"),password:password}});
+     if(result.error){var details="";try{details=(await result.error.context.json()).error||""}catch(_){}throw Error(details||result.error.message||"Error del servicio de registro")}
+     if(result.data&&result.data.error)throw Error(result.data.error);
+     if(!result.data||!result.data.email)throw Error("El servidor no devolvió el correo interno de la cuenta.");
+     var login=await db.auth.signInWithPassword({email:result.data.email,password:password});if(login.error)throw login.error;
+     say("Cuenta creada e inicio de sesión realizado. Si no aparece el panel, recarga la página.","success");
+     if(typeof window.__taxiDriverAfterSignup==="function")window.__taxiDriverAfterSignup(login.data.user);
+    }else{
+     say("El formulario de acceso principal no está disponible. Recarga la página y vuelve a intentarlo.","error");
+    }
+   }catch(err){say(err.message||String(err),"error")}
+   finally{submit.disabled=false;submit.textContent=(window.__taxiDriverMode||"login")==="signup"?"Crear cuenta":"Entrar";window.__taxiDriverFallbackBusy=false}
+  })();
+ },true);
+})();
+
 /* Fallback de navegación: mantiene accesibles las pantallas principales aunque falle otro módulo JS. */
 (function(){
   function openScreen(id){
