@@ -5,3 +5,5 @@
 #
 #driver-map-canvas{height:360px;width:100%;border-radius:18px;overflow:hidden;border:1px solid #ddd;margin:16px 0;background:#e9ecef}.driver-cards{display:grid;gap:12px;margin:14px 0}.driver-map-card{background:#fff;border:1px solid #e5e5e2;border-radius:16px;padding:16px}.driver-map-card h3{margin:0 0 6px;font-size:17px}.driver-map-card p{margin:0 0 12px;color:#666;font-size:13px}.call-driver{display:block;text-align:center;text-decoration:none}.leaflet-popup-content a{font-weight:800;color:#1c43ef}#
 #customer-account .panel h3{margin:0 0 8px;font-size:23px}#customer-account>p:not(.eyebrow){font-size:14px;line-height:1.6}#customer-profile-email{overflow-wrap:anywhere}#go-customer{background:#fff;border:2px solid #e6e6e1;color:#111}
+
+#driver-home-map{min-height:150px;background:#edf0f4;border-radius:16px;margin:12px 0}#client-current-ride .ride-card{border:2px solid var(--yellow)}#account h3{margin:20px 0 8px;font-size:18px}#client-account-actions #go-customer{min-height:56px}#customer-reservations h2{margin-bottom:18px}
