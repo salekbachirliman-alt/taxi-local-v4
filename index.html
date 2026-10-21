@@ -36,7 +36,7 @@ window.addEventListener("error",function(e){
  if(target && e.message){target.textContent="Error JavaScript: "+e.message;target.className="message error";}
 });
 </script>
-<script src="./app-fix-20261021.js?fresh=13"></script>
+<script src="./app-fix-20261021.js?fresh=14"></script>
 <script>
 /* Fallback independiente para el formulario de conductor: no depende de que app.js haya terminado de inicializarse. */
 (function(){
@@ -112,6 +112,12 @@ window.addEventListener("error",function(e){
   if(reg)reg.classList.add("hidden");
   if(dash)dash.classList.remove("hidden");
   var screen=document.getElementById("driver");
+  if(isAdmin){
+   var back=screen&&screen.querySelector(".back");
+   if(back){back.textContent="Cerrar sesión";back.removeAttribute("data-screen");back.onclick=async function(event){event.preventDefault();var client=window.supabase&&window.TAXI_CONFIG?window.supabase.createClient(window.TAXI_CONFIG.supabaseUrl,window.TAXI_CONFIG.supabaseKey):null;if(client)await client.auth.signOut();if(typeof window.__taxiAdminSignedOut==="function")window.__taxiAdminSignedOut();};}
+   ["home","booking","account-choice","customer-account","customer-reservations","client-home","driver-home"].forEach(function(id){var el=document.getElementById(id);if(el)el.classList.add("hidden")});
+   document.querySelectorAll(".bottom-nav").forEach(function(el){el.classList.add("hidden")});
+  }else if(screen){var back=screen.querySelector(".back");if(back){back.textContent="← Volver";back.setAttribute("data-screen","home");back.onclick=null;}}
   if(screen){document.querySelectorAll(".screen").forEach(function(s){s.classList.toggle("active",s===screen);});}
   var eyebrow=document.querySelector("#driver .eyebrow"),heading=document.querySelector("#driver h2");
   if(eyebrow)eyebrow.textContent=isAdmin?"ZONA DE ADMINISTRACIÓN":"ZONA DE CONDUCTORES";
@@ -121,6 +127,20 @@ window.addEventListener("error",function(e){
    document.dispatchEvent(new CustomEvent("taxi-admin-login",{detail:{user:user}}));
   }
   window.scrollTo(0,0);
+ };
+})();
+
+/* Salida limpia de la sesión administrativa. */
+(function(){
+ window.__taxiAdminSignedOut=function(){
+  var screen=document.getElementById("driver"),auth=document.getElementById("driver-auth"),dash=document.getElementById("admin-dashboard"),reg=document.getElementById("driver-register");
+  if(dash)dash.classList.add("hidden");if(auth)auth.classList.remove("hidden");if(reg)reg.classList.add("hidden");
+  document.querySelectorAll(".bottom-nav").forEach(function(el){el.classList.remove("hidden")});
+  ["home","booking","account-choice","customer-account","customer-reservations","client-home","driver-home"].forEach(function(id){var el=document.getElementById(id);if(el)el.classList.remove("hidden")});
+  if(screen){var back=screen.querySelector(".back");if(back){back.textContent="← Volver";back.setAttribute("data-screen","home");back.onclick=null}}
+  var form=document.getElementById("auth-form");if(form){form.dataset.adminOnly="true";var field=form.elements.namedItem("phone");if(field){field.value="";field.placeholder="Teléfono de administrador (9 cifras)"}var pass=form.elements.namedItem("password");if(pass)pass.value=""}
+  var eyebrow=document.querySelector("#driver .eyebrow"),heading=document.querySelector("#driver h2");if(eyebrow)eyebrow.textContent="ZONA DE ADMINISTRACIÓN";if(heading)heading.textContent="Acceso de administración";
+  document.querySelectorAll(".screen").forEach(function(s){s.classList.toggle("active",s.id==="driver")});window.scrollTo(0,0);
  };
 })();
 
