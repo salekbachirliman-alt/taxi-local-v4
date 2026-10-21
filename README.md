@@ -25,3 +25,9 @@ Antes de producción se recomienda añadir protección anti-spam, privacidad y u
 - Las reservas de clientes registrados incluyen `customer_user_id`; cada cliente puede consultar sus propias reservas.
 - El modo invitado sigue disponible y recuerda nombre y teléfono en el dispositivo, sin crear cuenta.
 - La autenticación por correo depende de la configuración de confirmación y entrega de correos de Supabase Auth. Si la confirmación está activa, el cliente debe confirmar el correo antes de iniciar sesión.
+
+
+### Acceso de clientes por teléfono
+- El registro y el inicio de sesión de clientes usan número de teléfono internacional y contraseña, sin solicitar correo electrónico.
+- La Edge Function `customer-auth` crea y autentica la cuenta con un identificador interno de Supabase; ese correo interno no se muestra ni se pide al cliente.
+- Para el piloto no se envía SMS de verificación: el número de teléfono no queda verificado como propiedad del usuario. No usar como prueba de titularidad hasta añadir verificación OTP.
