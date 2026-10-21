@@ -18,3 +18,10 @@ https://salekbachirliman-alt.github.io/taxi-local-v4/
 
 No añadir claves `service_role` ni secret al frontend. La clave `sb_publishable` es pública; la seguridad depende de RLS.
 Antes de producción se recomienda añadir protección anti-spam, privacidad y un procedimiento operativo para gestionar las solicitudes.
+
+## Cuentas de clientes (añadido en la prueba piloto)
+- Los clientes pueden crear una cuenta con correo y contraseña, nombre y teléfono.
+- El perfil se guarda en `public.customer_profiles`; cada usuario solo puede leer y modificar su propio perfil mediante RLS.
+- Las reservas de clientes registrados incluyen `customer_user_id`; cada cliente puede consultar sus propias reservas.
+- El modo invitado sigue disponible y recuerda nombre y teléfono en el dispositivo, sin crear cuenta.
+- La autenticación por correo depende de la configuración de confirmación y entrega de correos de Supabase Auth. Si la confirmación está activa, el cliente debe confirmar el correo antes de iniciar sesión.
