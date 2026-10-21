@@ -9,9 +9,9 @@
   "description": "Pide un taxi en Elda y Petrer.",
   "icons": [
     {
-      "src": "./taxi-local-icon.png",
-      "sizes": "180x180",
-      "type": "image/png",
+      "src": "./taxi-local-icon.svg?v=5",
+      "sizes": "any",
+      "type": "image/svg+xml",
       "purpose": "any"
     }
   ]
