@@ -10,3 +10,6 @@
 
 /* Account chooser and role-specific navigation */
 .role-choice{display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left;min-height:68px;padding:16px 20px;margin:12px 0;font-weight:750}.role-choice span:first-child{font-size:1.45rem}.bottom-nav.hidden{display:none!important}#account-choice h2{margin-bottom:8px}#account-choice .muted{margin-bottom:22px}.screen .map-canvas{min-height:220px}
+
+/* Account profile and driver reservation history */
+#client-account-profile{margin:12px 0}.role-choice{border-radius:18px}.ride-card button{margin:8px 8px 0 0}.screen#driver-reservations h2{margin-bottom:8px}
