@@ -1,5 +1,14 @@
-const CACHE="taxi-local-v4-static-30";
-const FILES=["./","./index.html","./styles.css","./styles.css?v=20261021auth9","./app.js","./app.js?v=20261021auth9","./config.js?v=20261021auth9","./manifest.webmanifest"];
-self.addEventListener("install",e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting())));
-self.addEventListener("activate",e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
-self.addEventListener("fetch",e=>{if(e.request.method!=="GET")return;const u=new URL(e.request.url);if(u.origin!==self.location.origin)return;e.respondWith(caches.match(e.request).then(cached=>cached||fetch(e.request).then(r=>{const copy=r.clone();caches.open(CACHE).then(c=>c.put(e.request,copy));return r}))) });
+const CACHE="taxi-local-v4-static-31";
+const FILES=["./","./index.html","./styles.css","./manifest.webmanifest"];
+self.addEventListener("install",event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES)).then(()=>self.skipWaiting())));
+self.addEventListener("activate",event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith("taxi-local-v4-static-")&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
+self.addEventListener("fetch",event=>{
+ const request=event.request;
+ if(request.method!=="GET")return;
+ const url=new URL(request.url);
+ if(url.origin===self.location.origin && (url.pathname.endsWith("/app.js")||url.pathname.endsWith("/config.js")||url.pathname.endsWith("/index.html")||url.pathname==="/"||url.pathname.endsWith("/"))){
+  event.respondWith(fetch(request,{cache:"no-store"}).then(response=>{if(response.ok&&url.pathname.endsWith("/index.html")){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(request,copy));}return response;}).catch(()=>caches.match(request).then(cached=>cached||caches.match("./index.html"))));
+  return;
+ }
+ if(url.origin===self.location.origin)event.respondWith(caches.match(request).then(cached=>cached||fetch(request)));
+});
