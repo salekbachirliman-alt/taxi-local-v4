@@ -1,5 +1,5 @@
-const CACHE="taxi-local-v4-static-36";
-const FILES=["./","./index.html","./styles.css","./manifest.webmanifest"];
+const CACHE="taxi-local-v4-static-37";
+const FILES=["./","./index.html","./styles.css","./manifest.webmanifest","./taxi-local-icon.png"];
 self.addEventListener("install",event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES)).then(()=>self.skipWaiting())));
 self.addEventListener("activate",event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith("taxi-local-v4-static-")&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
 self.addEventListener("fetch",event=>{
