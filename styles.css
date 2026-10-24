@@ -232,3 +232,22 @@ html[dir="rtl"] .leaflet-container{direction:ltr}
 .leaflet-container{background:#f5f5f2!important}
 .leaflet-tile-pane{filter:grayscale(.22) saturate(.66) contrast(1.04) brightness(1.015)}
 .taxi-premium-marker span{background:#ffc21a!important;border:2px solid #fff!important;box-shadow:0 5px 18px rgba(0,0,0,.25)!important}
+
+
+/* Integrated map finish: quieter cartography, branded pins and card-like framing. */
+#driver-map-canvas,#customer-reservations-map,#driver-home-map{
+  border-radius:22px!important;
+  border:1px solid #eee8dc!important;
+  box-shadow:0 10px 28px rgba(32,25,8,.065)!important;
+  background:#f8f7f3!important;
+}
+.leaflet-tile-pane{filter:grayscale(.58) saturate(.42) contrast(1.015) brightness(1.035)!important}
+.leaflet-control-container .leaflet-top.leaflet-left{margin:12px}
+.leaflet-control-zoom{border-radius:12px!important;overflow:hidden}
+.leaflet-control-zoom a{width:36px!important;height:36px!important;line-height:36px!important}
+.taxi-premium-marker span{width:28px;height:28px;background:#ffbd16!important;border:2px solid #fff!important;box-shadow:0 4px 12px rgba(20,20,20,.22)!important}
+.taxi-premium-marker span:after{left:6px;top:6px;width:12px;height:12px;background:#171717!important}
+.taxi-user-location{background:transparent;border:0}
+.taxi-user-location span{display:block;width:18px;height:18px;border:3px solid #fff;border-radius:50%;background:#3478f6;box-shadow:0 0 0 5px rgba(52,120,246,.2),0 2px 8px rgba(0,0,0,.2)}
+#driver-map-canvas::before,#customer-reservations-map::before,#driver-home-map::before{top:10px;left:10px;padding:7px 10px;font-size:8px;letter-spacing:1px;border-color:#eee8dc}
+#driver-map-canvas::after,#customer-reservations-map::after,#driver-home-map::after{height:3px}
