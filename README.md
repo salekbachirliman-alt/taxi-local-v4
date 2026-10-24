@@ -31,3 +31,12 @@ Antes de producción se recomienda añadir protección anti-spam, privacidad y u
 - El registro y el inicio de sesión de clientes usan número de teléfono internacional y contraseña, sin solicitar correo electrónico.
 - La Edge Function `customer-auth` crea y autentica la cuenta con un identificador interno de Supabase; ese correo interno no se muestra ni se pide al cliente.
 - Para el piloto no se envía SMS de verificación: el número de teléfono no queda verificado como propiedad del usuario. No usar como prueba de titularidad hasta añadir verificación OTP.
+
+
+## Reservas anticipadas
+- En la pantalla principal hay dos opciones: pedir un taxi ahora o reservar para más tarde.
+- Las reservas programadas requieren fecha y hora entre 15 minutos y 90 días desde el momento de la solicitud.
+- La fecha se guarda en `public.rides.scheduled_for` como `timestamptz`; las reservas inmediatas mantienen este campo en `NULL` para conservar compatibilidad.
+- La fecha programada se muestra en las listas de reservas del cliente y del conductor. La aceptación sigue usando el mecanismo actual de asignación de conductor.
+- Migración: `supabase/migrations/20261024161133_add_scheduled_rides.sql`.
+- Edge Function: `supabase/functions/create-ride/index.ts`.
