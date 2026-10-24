@@ -281,3 +281,7 @@ html[dir="rtl"] .leaflet-container{direction:ltr}
   background:#3478f6!important;border:3px solid #fff!important;
   box-shadow:0 0 0 5px rgba(52,120,246,.16),0 2px 8px rgba(0,0,0,.2)!important
 }
+
+
+/* Keep map readable while using the reliable OpenStreetMap tile source */
+.leaflet-tile-pane{filter:grayscale(.32) saturate(.72) contrast(1.01) brightness(1.02)!important}
