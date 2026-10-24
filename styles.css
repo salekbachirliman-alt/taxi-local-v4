@@ -155,3 +155,7 @@ main{padding:20px 16px 32px}
 .role-choice .role-arrow{font-size:24px;line-height:1;font-weight:500;color:#686868}
 #choose-customer .role-icon{background:rgba(255,255,255,.55)}
 @media(max-width:360px){.role-choice{gap:10px;padding:15px}.role-choice .role-icon{width:40px;height:40px;flex-basis:40px}}
+
+
+/* Arabic interface: right-to-left layout, preserving responsive behavior. */
+html[dir="rtl"]{direction:rtl}html[dir="rtl"] body{text-align:right}html[dir="rtl"] .top,html[dir="rtl"] .driver-head,html[dir="rtl"] .tabs,html[dir="rtl"] .nav,html[dir="rtl"] .role-choice{direction:rtl}html[dir="rtl"] input,html[dir="rtl"] select,html[dir="rtl"] textarea{direction:rtl;text-align:right}html[dir="rtl"] input[type="tel"],html[dir="rtl"] input[inputmode="numeric"],html[dir="rtl"] input[type="password"],html[dir="rtl"] input[type="datetime-local"]{direction:ltr;text-align:right}html[dir="rtl"] .back{text-align:right}html[dir="rtl"] .role-arrow{transform:scaleX(-1)}html[dir="rtl"] .ui-icon{flex-shrink:0}html[dir="rtl"] .form-note,html[dir="rtl"] .message,html[dir="rtl"] .empty-state{line-height:1.8}html[dir="rtl"] .leaflet-container{direction:ltr}html[dir="rtl"] .leaflet-control{direction:ltr}
