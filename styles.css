@@ -155,3 +155,26 @@ main{padding:20px 16px 32px}
 .role-choice .role-arrow{font-size:24px;line-height:1;font-weight:500;color:#686868}
 #choose-customer .role-icon{background:rgba(255,255,255,.55)}
 @media(max-width:360px){.role-choice{gap:10px;padding:15px}.role-choice .role-icon{width:40px;height:40px;flex-basis:40px}}
+
+
+/* Spanish / Arabic language selector and RTL support */
+.language-switch{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:3px;font-size:10px;font-weight:800;z-index:10}
+.language-switch select{max-width:112px;min-height:34px;border:1px solid rgba(0,0,0,.2);border-radius:10px;background:#fff;color:#101010;padding:5px 8px;font-size:13px;font-weight:750}
+.language-label{line-height:1.1;white-space:nowrap}
+header.top .live-dot{margin-left:0}
+html[dir="rtl"] body{direction:rtl}
+html[dir="rtl"] .top{flex-direction:row}
+html[dir="rtl"] .top .language-switch{margin-left:0;margin-right:auto;align-items:flex-start}
+html[dir="rtl"] .live-dot{margin-right:0;margin-left:0}
+html[dir="rtl"] main{text-align:initial}
+html[dir="rtl"] .role-choice{text-align:right;flex-direction:row}
+html[dir="rtl"] .role-choice .role-arrow{transform:scaleX(-1)}
+html[dir="rtl"] .back{text-align:right}
+html[dir="rtl"] label{text-align:right}
+html[dir="rtl"] input,html[dir="rtl"] textarea,html[dir="rtl"] select{text-align:right}
+html[dir="rtl"] .bottom-nav{direction:rtl}
+html[dir="rtl"] .tabs{direction:rtl}
+html[dir="rtl"] .driver-head{direction:rtl}
+html[dir="rtl"] .message,html[dir="rtl"] .form-note{text-align:right}
+html[dir="rtl"] .leaflet-container{direction:ltr}
+@media(max-width:380px){.language-switch select{max-width:90px;padding:4px;font-size:12px}.language-label{font-size:9px}.top{gap:8px;padding-left:12px;padding-right:12px}}
