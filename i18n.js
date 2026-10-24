@@ -173,15 +173,20 @@ function apply(){
  walk(document.body);
 }
 function addSelector(){
- if(document.getElementById("taxi-language"))return;
- var header=document.querySelector("header.top");
- if(!header)return;
- var wrap=document.createElement("label");
- wrap.className="language-switch";
- wrap.setAttribute("for","taxi-language");
- wrap.innerHTML='<span class="language-label">Idioma / اللغة</span><select id="taxi-language" aria-label="Idioma / اللغة"><option value="es">Español</option><option value="ar">العربية</option></select>';
- header.appendChild(wrap);
- wrap.querySelector("select").addEventListener("change",function(){
+ var select=document.getElementById("taxi-language");
+ if(!select){
+  var header=document.querySelector("header.top");
+  if(!header)return;
+  var wrap=document.createElement("label");
+  wrap.className="language-switch";
+  wrap.setAttribute("for","taxi-language");
+  wrap.innerHTML='<span class="language-label">Idioma / اللغة</span><select id="taxi-language" aria-label="Idioma / اللغة"><option value="es">Español</option><option value="ar">العربية</option></select>';
+  header.appendChild(wrap);
+  select=wrap.querySelector("select");
+ }
+ if(select.dataset.taxiLanguageBound==="1")return;
+ select.dataset.taxiLanguageBound="1";
+ select.addEventListener("change",function(){
   language=this.value==="ar"?"ar":"es";
   try{localStorage.setItem(KEY,language)}catch(_){}
   apply();
