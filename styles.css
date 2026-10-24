@@ -285,3 +285,48 @@ html[dir="rtl"] .leaflet-container{direction:ltr}
 
 /* Keep map readable while using the reliable OpenStreetMap tile source */
 .leaflet-tile-pane{filter:grayscale(.32) saturate(.72) contrast(1.01) brightness(1.02)!important}
+
+
+/* Uber-inspired integrated map: calm basemap, no decorative label, floating map controls */
+#driver-map-canvas,#customer-reservations-map,#driver-home-map{
+  position:relative!important;
+  border-radius:20px!important;
+  border:1px solid #e8e7e2!important;
+  box-shadow:0 5px 18px rgba(20,20,20,.045)!important;
+  background:#f1f1ed!important;
+}
+#driver-map-canvas::before,#customer-reservations-map::before,#driver-home-map::before{display:none!important}
+#driver-map-canvas::after,#customer-reservations-map::after,#driver-home-map::after{display:none!important}
+.leaflet-tile-pane{filter:grayscale(.7) saturate(.42) contrast(.96) brightness(1.04)!important}
+.leaflet-control-attribution{
+  font-size:8px!important;color:#737373!important;
+  background:rgba(255,255,255,.82)!important;border-radius:7px 0 0 0!important;
+  box-shadow:none!important
+}
+.leaflet-control-zoom{
+  margin:0 12px 12px 0!important;border:0!important;border-radius:13px!important;
+  overflow:hidden;box-shadow:0 3px 12px rgba(0,0,0,.12)!important
+}
+.leaflet-bottom.leaflet-right .leaflet-control-zoom a{
+  width:34px!important;height:34px!important;line-height:34px!important;
+  background:#fff!important;color:#171717!important;border:0!important
+}
+.leaflet-control-zoom-in{border-bottom:1px solid #eee!important}
+.leaflet-popup-content-wrapper{border-radius:14px!important;box-shadow:0 5px 18px rgba(0,0,0,.12)!important}
+.taxi-premium-marker span{
+  width:28px!important;height:28px!important;border-radius:50% 50% 50% 8px!important;
+  transform:rotate(-45deg)!important;background:#ffbd16!important;
+  border:2px solid #fff!important;box-shadow:0 3px 10px rgba(0,0,0,.22)!important
+}
+.taxi-premium-marker span:after{
+  left:7px!important;top:7px!important;width:10px!important;height:10px!important;
+  border:0!important;background:#171717!important
+}
+.taxi-user-location span{
+  width:16px!important;height:16px!important;border:3px solid white!important;
+  background:#2878ff!important;box-shadow:0 0 0 5px rgba(40,120,255,.17)!important
+}
+@media(max-width:480px){
+ #customer-reservations-map,#driver-home-map{height:280px!important;min-height:280px!important}
+ #driver-map-canvas{height:320px!important;min-height:320px!important}
+}
