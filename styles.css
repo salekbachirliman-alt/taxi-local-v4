@@ -15,3 +15,130 @@
 #client-account-profile{margin:12px 0}.role-choice{border-radius:18px}.ride-card button{margin:8px 8px 0 0}.screen#driver-reservations h2{margin-bottom:8px}
 
 #customer-reservations-map,#driver-home-map{height:260px;min-height:260px;border-radius:18px;overflow:hidden;background:#edf0f4;margin:12px 0 18px}.screen h3{margin-top:22px}.driver-cards .ride-card{margin-bottom:12px}
+
+
+/* Taxi Local visual refresh — inspired by the supplied reference.
+   Presentation-only layer: preserves existing markup, IDs, forms and app logic. */
+:root{
+  --yellow:#ffb900;
+  --ink:#171717;
+  --blue:#1c43ef;
+  --paper:#fffaf0;
+  --muted:#747474;
+  --line:#eee8dc;
+  --surface:#fff;
+  --shadow-soft:0 12px 32px rgba(32,25,8,.07);
+}
+html{background:var(--paper);-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{
+  min-height:100dvh;
+  background:linear-gradient(180deg,#fff8e9 0,#fbfaf7 260px,#f7f7f5 100%);
+  color:var(--ink);
+  -webkit-tap-highlight-color:transparent;
+}
+button,input,select,textarea{font-family:inherit}
+button{transition:transform .16s ease,box-shadow .16s ease,background-color .16s ease}
+button:active{transform:scale(.985)}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{
+  outline:3px solid rgba(255,185,0,.55);outline-offset:2px
+}
+.top{
+  padding:16px 20px;
+  background:rgba(255,185,0,.97);
+  box-shadow:0 5px 22px rgba(55,39,0,.08);
+  backdrop-filter:blur(14px);
+}
+.brand-mark{border-radius:15px;background:#fff;box-shadow:0 3px 10px rgba(0,0,0,.07)}
+.top h1{font-size:21px;letter-spacing:-.45px}
+.top p{font-size:12px;color:#493600}
+.live-dot{box-shadow:0 0 0 5px rgba(33,135,57,.12)}
+main{padding:20px 16px 32px}
+.welcome{padding:26px 4px 20px}
+.eyebrow{font-size:10px;letter-spacing:1.35px;color:#8a6a13}
+.welcome h2,h2{
+  font-size:clamp(30px,8vw,43px);
+  line-height:1.08;
+  letter-spacing:-1.35px;
+  font-weight:900;
+}
+.welcome p:not(.eyebrow){font-size:14px;line-height:1.65;color:#686868}
+.big{
+  min-height:76px;
+  border-radius:20px;
+  padding:19px 21px;
+  font-size:20px;
+  letter-spacing:-.35px;
+  margin:12px 0;
+  box-shadow:0 8px 18px rgba(31,25,0,.07);
+}
+.big span{font-size:25px}
+.primary{
+  background:linear-gradient(135deg,#ffc72c 0%,#ffb000 100%);
+  color:#171717;
+  border-radius:15px;
+  box-shadow:0 5px 14px rgba(255,174,0,.16);
+}
+.primary:hover{box-shadow:0 8px 20px rgba(255,174,0,.25)}
+.big.driver-cta,.secondary{
+  background:#fff;
+  color:#222;
+  border:1px solid #eee8dc;
+  box-shadow:0 5px 16px rgba(31,25,0,.045);
+}
+.panel{
+  border:1px solid rgba(232,225,211,.8);
+  border-radius:23px;
+  padding:18px;
+  margin:16px 0;
+  box-shadow:var(--shadow-soft);
+}
+.panel label{font-size:13px;line-height:1.4;color:#333}
+.panel input,.panel select,.panel textarea{
+  border:1px solid #e8e4dc;
+  border-radius:13px;
+  padding:14px;
+  background:#fff;
+  min-height:49px;
+  transition:border-color .15s ease,box-shadow .15s ease;
+}
+.panel input:focus,.panel select:focus,.panel textarea:focus{
+  border-color:#f0b323;box-shadow:0 0 0 3px rgba(255,185,0,.15)
+}
+.submit{min-height:55px;border-radius:15px}
+.back{padding:10px 0 16px;color:#575757}
+.bottom-nav{
+  background:rgba(255,255,255,.96);
+  border-top:1px solid rgba(232,225,211,.85);
+  box-shadow:0 -8px 26px rgba(25,20,5,.045);
+  backdrop-filter:blur(18px);
+  padding-top:10px;
+}
+.nav-item{border-radius:15px;min-width:70px;padding:7px 10px;color:#858585}
+.nav-item.active{color:#171717;background:#fff2c9}
+.nav-item span{font-size:22px}
+.tabs{background:#f4f1ea;border-radius:14px;padding:4px}
+.tab{border-radius:11px;min-height:43px}
+.tab.selected{box-shadow:0 3px 10px rgba(0,0,0,.06)}
+.ride-card,.driver-map-card{
+  border:1px solid #eee8dc;
+  border-radius:20px;
+  padding:17px;
+  box-shadow:0 7px 22px rgba(32,25,8,.045);
+}
+.ride-card h4{font-size:16px;font-weight:850}
+.ride-card p{line-height:1.6}
+.status{background:#fff1bd;color:#765400;padding:7px 11px}
+.empty-state{background:#fff;border:1px dashed #e5dfd2;border-radius:18px;padding:20px}
+.map-link{background:#fff5d6;border-radius:13px}
+.location-button{background:#252525!important;color:#fff!important;border-radius:14px}
+#driver-map-canvas,#driver-home-map,#customer-reservations-map{border:1px solid #e8e4dc;box-shadow:0 8px 24px rgba(32,25,8,.06)}
+#admin-dashboard h3,.driver-head h3{letter-spacing:-.25px}
+@media(min-width:600px){
+  body{padding-bottom:100px}
+  main{padding-top:28px}
+  .welcome{padding-top:36px}
+  .big{min-height:82px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
