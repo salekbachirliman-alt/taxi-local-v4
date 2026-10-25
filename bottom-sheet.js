@@ -12,11 +12,18 @@
    if(s.id==="driver"){var dd=document.getElementById("driver-dashboard");return !!dd&&!dd.classList.contains("hidden");}
    return false;
   }
+  var lastEnabled=null;
   function refreshMode(){
-   var enabled=isMapView();document.body.classList.toggle("taxi-sheet-mode",enabled);
-   var displayValue=enabled?"flex":"none";if(handle.style.display!==displayValue)handle.style.display=displayValue;
-   if(!enabled){collapsed=false;main.classList.remove("taxi-sheet-collapsed");}
+   var enabled=isMapView();
+   if(document.body.classList.contains("taxi-sheet-mode")!==enabled)document.body.classList.toggle("taxi-sheet-mode",enabled);
+   var displayValue=enabled?"flex":"none";
+   if(handle.style.display!==displayValue)handle.style.display=displayValue;
+   if(!enabled){
+    collapsed=false;
+    if(main.classList.contains("taxi-sheet-collapsed"))main.classList.remove("taxi-sheet-collapsed");
+   }
    updateLabels();
+   lastEnabled=enabled;
   }
   function updateLabels(){
    handle.setAttribute("aria-expanded",String(!collapsed));
@@ -48,9 +55,12 @@
    if(Math.abs(delta)>18){suppressClick=true;setCollapsed(delta>0);setTimeout(function(){suppressClick=false;},350);}
   }
   handle.addEventListener("pointerup",finish);handle.addEventListener("pointercancel",finish);
-  var observer=new MutationObserver(refreshMode);observer.observe(main,{subtree:true,attributes:true,attributeFilter:["class"]});
+  var observer=new MutationObserver(function(){refreshMode();});
+  observer.observe(main,{subtree:true,attributes:true,attributeFilter:["class"]});
   document.querySelectorAll("[data-screen]").forEach(function(el){el.addEventListener("click",function(){setTimeout(refreshMode,80);});});
-  window.addEventListener("resize",refreshMode);refreshMode();
+  window.addEventListener("resize",refreshMode);
+  document.addEventListener("visibilitychange",refreshMode);
+  refreshMode();
  }
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();
