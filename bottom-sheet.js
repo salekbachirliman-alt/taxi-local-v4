@@ -14,7 +14,7 @@
   }
   function refreshMode(){
    var enabled=isMapView();document.body.classList.toggle("taxi-sheet-mode",enabled);
-   handle.style.display=enabled?"flex":"none";
+   var displayValue=enabled?"flex":"none";if(handle.style.display!==displayValue)handle.style.display=displayValue;
    if(!enabled){collapsed=false;main.classList.remove("taxi-sheet-collapsed");}
    updateLabels();
   }
