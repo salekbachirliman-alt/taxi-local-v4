@@ -4,7 +4,7 @@
  function init(){
   var main=document.querySelector("main"),handle=document.getElementById("taxi-sheet-handle"),toggle=document.getElementById("taxi-sheet-toggle");
   if(!main||!handle||!toggle)return;
-  var collapsed=false,startY=0,lastY=0,dragging=false,pointer=null;
+  var collapsed=false,startY=0,lastY=0,dragging=false,pointer=null,suppressClick=false;
   function isMapView(){
    var s=document.querySelector(".screen.active");if(!s)return false;
    if(s.id==="driver-map"||s.id==="customer-reservations")return true;
@@ -30,7 +30,7 @@
   }
   function togglePanel(){setCollapsed(!collapsed);}
   toggle.addEventListener("click",function(e){e.stopPropagation();togglePanel();});
-  handle.addEventListener("click",function(e){if(e.target===toggle||toggle.contains(e.target))return;togglePanel();});
+  handle.addEventListener("click",function(e){if(e.target===toggle||toggle.contains(e.target))return;if(suppressClick){suppressClick=false;e.preventDefault();return;}togglePanel();});
   handle.addEventListener("keydown",function(e){
    if(e.key==="Enter"||e.key===" "){e.preventDefault();togglePanel();}
    else if(e.key==="ArrowUp"){e.preventDefault();setCollapsed(false);}
@@ -45,7 +45,7 @@
   function finish(e){
    if(!dragging||(e&&e.pointerId!==pointer))return;
    var delta=lastY-startY;dragging=false;pointer=null;
-   if(Math.abs(delta)>18)setCollapsed(delta>0);
+   if(Math.abs(delta)>18){suppressClick=true;setCollapsed(delta>0);setTimeout(function(){suppressClick=false;},350);}
   }
   handle.addEventListener("pointerup",finish);handle.addEventListener("pointercancel",finish);
   var observer=new MutationObserver(refreshMode);observer.observe(main,{subtree:true,attributes:true,attributeFilter:["class"]});
