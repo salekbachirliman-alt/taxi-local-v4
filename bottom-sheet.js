@@ -66,6 +66,28 @@
   main.addEventListener("pointermove",moveDrag);
   main.addEventListener("pointerup",finish);
   main.addEventListener("pointercancel",finish);
+
+  /* Respaldo táctil específico para Safari/iPhone y modo instalado. */
+  var touchStartY=null,touchLastY=null;
+  handle.addEventListener("touchstart",function(e){
+   if(!e.touches||!e.touches.length)return;
+   touchStartY=e.touches[0].clientY;touchLastY=touchStartY;
+  },{passive:true});
+  handle.addEventListener("touchmove",function(e){
+   if(touchStartY===null||!e.touches||!e.touches.length)return;
+   touchLastY=e.touches[0].clientY;
+   if(e.cancelable)e.preventDefault();
+  },{passive:false});
+  handle.addEventListener("touchend",function(){
+   if(touchStartY===null)return;
+   var delta=touchLastY-touchStartY;
+   touchStartY=null;touchLastY=null;
+   if(Math.abs(delta)>18){
+    suppressClick=true;setCollapsed(delta>0);
+    window.setTimeout(function(){suppressClick=false;},450);
+   }
+  },{passive:true});
+  handle.addEventListener("touchcancel",function(){touchStartY=null;touchLastY=null;},{passive:true});
   var observer=new MutationObserver(function(){refreshMode();});
   observer.observe(main,{subtree:true,attributes:true,attributeFilter:["class"]});
   document.querySelectorAll("[data-screen]").forEach(function(el){el.addEventListener("click",function(){setTimeout(refreshMode,80);});});
